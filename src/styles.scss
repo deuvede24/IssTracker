@@ -1,1 +1,24 @@
 /* You can add global styles to this file, and also import other style files */
+
+app-map .mobile-map-container .map-legend {
+  background: linear-gradient(135deg, #14249c, #3B4FBA) !important;
+}
+// ===== HEADER COHESIVO =====
+app-map .mobile-header {
+  background: linear-gradient(135deg, #14249c, #3B4FBA) !important;
+}
+
+// ===== BOTÓN ISS COHESIVO =====
+/*app-map .flight-control {
+  background: linear-gradient(135deg, #2D3E99, #3B4FBA) !important;
+  border-top: 1px solid rgba(100, 255, 218, 0.2) !important;
+}*/
+
+
+
+// ===== INFO DEL PASE COHESIVO =====
+app-map .mobile-pass-info {
+  background: linear-gradient(135deg, #2D3E99, #14249c) !important;
+}
+
+
