@@ -40,3 +40,12 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Variables de entorno sensibles
+.env
+
+# Scripts locales que no forman parte de la app
+/scripts/
+
+# Entornos de desarrollo generados
+src/environments/environment.ts
