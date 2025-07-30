@@ -1,0 +1,126 @@
+<div class="mobile-map-page">
+  <!-- HEADER ARREGLADO - Alineación correcta -->
+  <div class="mobile-header">
+    <button class="mobile-close" (click)="goBack()">
+      <i class="bi bi-arrow-left"></i>
+    </button>
+    <span class="mobile-title">Next ISS Pass</span>
+    <button class="mobile-view-toggle" (click)="toggleMapStyle()">
+      <i [class]="getViewIcon()"></i>
+    </button>
+  </div>
+
+  <!-- MAPA LIMPIO -->
+  <div class="mobile-map-container">
+    <mgl-map [accessToken]="mapboxToken" [style]="currentStyle()" [zoom]="[12]" [center]="userLocation"
+      class="mobile-map" (mapLoad)="onMapLoad($event)">
+
+      <!-- Fuente GeoJSON -->
+      <mgl-geojson-source id="trajectory" [data]="trajectoryData()"></mgl-geojson-source>
+
+      <!-- Línea de trayectoria -->
+      <mgl-line-layer id="trajectory-line" source="trajectory" [paint]="{
+          'line-color': '#00FFB3',
+          'line-width': 3,
+          'line-dasharray': [6, 3],
+          'line-opacity': 0.7
+        }">
+      </mgl-line-layer>
+
+      <!-- MARCADORES CON PUNCH -->
+      <mgl-marker [lngLat]="userLocation">
+        <div class="location-badge-marker">
+          <div class="location-pulse"></div>
+          <div class="location-icon">
+            <i class="bi bi-person-fill"></i>
+          </div>
+        </div>
+      </mgl-marker>
+
+      <mgl-marker [lngLat]="issStartPoint()">
+        <div class="iss-point-marker start">
+          <div class="point-glow green"></div>
+          <div class="point-emoji">🟢</div>
+        </div>
+      </mgl-marker>
+
+      <mgl-marker [lngLat]="issEndPoint()">
+        <div class="iss-point-marker end">
+          <div class="point-glow red"></div>
+          <div class="point-emoji">🔴</div>
+        </div>
+      </mgl-marker>
+    </mgl-map>
+
+    <!-- LEYENDA FLOTANTE -->
+    <div class="map-legend">
+      <div class="legend-item">
+        <div class="legend-location-icon">
+          <i class="bi bi-person-fill"></i>
+        </div>
+        <span>You are here</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-dot">🟢</span>
+        <span>ISS appears</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-dot">🔴</span>
+        <span>ISS disappears</span>
+      </div>
+    </div>
+
+    <!-- BRÚJULA FIJA -->
+    <div class="compass-widget">
+      <div class="compass-circle">
+        <div class="compass-needle">
+          <div class="needle-north"></div>
+          <div class="needle-south"></div>
+        </div>
+        <div class="compass-points">
+          <div class="compass-point north">N</div>
+          <div class="compass-point east">E</div>
+          <div class="compass-point south">S</div>
+          <div class="compass-point west">W</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTÓN PARA ANIMACIÓN -->
+  <div class="flight-control">
+    <button class="flight-button" (click)="startISSFlight()" [disabled]="animationRunning()">
+      @if (!animationRunning()) {
+      <i class="bi bi-play-fill"></i>
+      }
+      @if (animationRunning()) {
+      <i class="bi bi-pause-fill"></i>
+      }
+      {{ animationRunning() ? '🛰️ Flying...' : 'Watch ISS Pass' }}
+    </button>
+  </div>
+
+  <!-- INFO DEL PASE EN INGLÉS -->
+ <!-- INFO DEL PASE - CON ICONOS PARA TODO -->
+<div class="mobile-pass-info">
+  <div class="pass-header-mobile">
+    <!-- HORA con icono -->
+    <div class="pass-time-group">
+      <i class="bi bi-clock-fill"></i>
+      <span class="pass-time-mobile">{{ getNextPassTime() }}</span>
+    </div>
+    
+    <!-- DURACIÓN con icono -->
+    <div class="pass-duration-group">
+      <i class="bi bi-stopwatch"></i>
+      <span class="pass-duration-mobile">{{ getNextPassDuration() }}min</span>
+    </div>
+    
+    <!-- COUNTDOWN con icono (como ya estaba) -->
+    <div class="pass-countdown">
+      <i class="bi bi-hourglass-split"></i>
+      <span>In {{ getTimeUntilPass() }}</span>
+    </div>
+  </div>
+</div>
+</div>

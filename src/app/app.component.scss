@@ -1,0 +1,148 @@
+// app.component.scss - BOTTOM NAVIGATION LAYOUT
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: linear-gradient(135deg, #0c1445 0%, #1a237e 50%, #3949ab 100%);
+  overflow: hidden;
+}
+
+// MAIN CONTENT - Ocupa todo el espacio disponible
+.main-content {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  padding-bottom: 0; // Sin padding, el bottom nav es fijo
+}
+
+// BOTTOM NAVIGATION BAR
+.bottom-nav {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: rgba(0,0,0,0.9);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding: 0.75rem 1rem 1.5rem; // Extra padding abajo para el "home indicator"
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  
+  // Efecto glassmorphism
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0.5rem 0.75rem;
+  border-radius: 12px;
+  min-width: 60px;
+  position: relative;
+  
+  &:hover {
+    color: rgba(255,255,255,0.8);
+    background: rgba(255,255,255,0.05);
+    transform: translateY(-2px);
+  }
+  
+  &.active {
+    color: var(--item-color, #64ffda);
+    background: rgba(255,255,255,0.1);
+    transform: translateY(-3px);
+    
+    .nav-icon {
+      transform: scale(1.1);
+    }
+    
+    // Indicador activo encima
+    &::before {
+      content: '';
+      position: absolute;
+      top: -0.75rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 24px;
+      height: 3px;
+      background: var(--item-color, #64ffda);
+      border-radius: 0 0 2px 2px;
+    }
+  }
+  
+  &:active {
+    transform: translateY(-1px) scale(0.95);
+  }
+}
+
+.nav-icon {
+  font-size: 1.3rem;
+  transition: transform 0.2s ease;
+}
+
+.nav-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  line-height: 1;
+}
+
+// RESPONSIVE ADJUSTMENTS
+@media (max-width: 480px) {
+  .bottom-nav {
+    padding: 0.5rem 0.5rem 1.25rem;
+  }
+  
+  .nav-item {
+    padding: 0.5rem 0.5rem;
+    min-width: 50px;
+    gap: 0.2rem;
+  }
+  
+  .nav-icon {
+    font-size: 1.2rem;
+  }
+  
+  .nav-label {
+    font-size: 0.6rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .nav-label {
+    display: none; // En pantallas muy pequeñas, solo iconos
+  }
+  
+  .nav-icon {
+    font-size: 1.4rem; // Iconos más grandes cuando no hay texto
+  }
+  
+  .nav-item {
+    gap: 0;
+    padding: 0.75rem 0.5rem;
+  }
+}
+
+// Safe area para iPhone con home indicator
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .bottom-nav {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+}
+
+// PWA - Cuando se instala como app
+@media (display-mode: standalone) {
+  .bottom-nav {
+    padding-bottom: 1.5rem; // Más espacio en modo app
+  }
+}
