@@ -3,7 +3,7 @@ import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { PassHome } from '../../../interfaces/pass.interface';
-// Y BORRA la interface Pass de este archivo
+import { calculateBearing, bearingToCardinal, BARCELONA_PLACES } from '../../../utils/geodesy';
 
 /*interface Pass {
   id: string;
@@ -27,7 +27,9 @@ import { PassHome } from '../../../interfaces/pass.interface';
 export class HomeComponent implements OnInit {
   
   // ===== SIGNALS =====
-  visiblePasses = signal<PassHome[]>([
+ visiblePasses = signal<PassHome[]>((() => {
+  // Datos base sin direcciones
+  const passesRaw = [
     {
       id: '1',
       time: new Date(Date.now() + 2 * 3600000), // En 2 horas
@@ -58,8 +60,34 @@ export class HomeComponent implements OnInit {
       brightness: 'Muy brillante ⭐⭐',
       timeToPass: '1 día y 1 hora'
     }
-  ]);
+  ];
 
+  // Enriquecer con direcciones calculadas
+  return passesRaw.map(pass => {
+    const fromCoords = BARCELONA_PLACES[pass.from];
+    const toCoords = BARCELONA_PLACES[pass.to];
+    
+    if (fromCoords && toCoords) {
+     // Intercambiar from/to
+const bearing = calculateBearing(
+  toCoords[1], toCoords[0],     // destino primero
+  fromCoords[1], fromCoords[0]  // origen segundo
+);
+      
+      const fromCardinal = bearingToCardinal(bearing);
+      const toCardinal = bearingToCardinal((bearing + 180) % 360);
+      
+      return {
+        ...pass,
+        direction: `${fromCardinal} → ${toCardinal}`,
+        compass: bearing < 90 ? '↙️' : bearing < 180 ? '↖️' : bearing < 270 ? '↗️' : '↘️',
+        azimuth: { appear: bearing, disappear: (bearing + 180) % 360 }
+      };
+    }
+    
+    return pass;
+  });
+})());
   // Distancia actual de la ISS
   currentDistance = signal<number>(420);
   

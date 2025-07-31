@@ -55,15 +55,24 @@
           <div class="time">{{ pass.time | date:'HH:mm' }}</div>
         </div>
         
-        <div class="pass-description-simple">
-          <div class="pass-route-visual">
-            <span class="appear-point">🟢 {{ pass.from }}</span>
-            <div class="pass-arrow">➡️</div>
-            <span class="disappear-point">🔴 {{ pass.to }}</span>
-          </div>
-          <div class="pass-duration-simple">{{ pass.duration }} minutes visible</div>
-          <div class="brightness-simple">{{ pass.brightness }}</div>
-        </div>
+      <div class="pass-description-simple">
+  <div class="pass-route-visual">
+    <span class="appear-point">🟢 {{ pass.from }}</span>
+    <div class="pass-arrow">→</div>
+    <span class="disappear-point">🔴 {{ pass.to }}</span>
+  </div>
+  
+  <!-- NUEVO: Mostrar dirección cardinal -->
+  @if (pass.direction) {
+    <div class="pass-direction">
+      <span class="compass">{{ pass.compass }}</span>
+      <span class="direction-text">{{ pass.direction }}</span>
+    </div>
+  }
+  
+  <div class="pass-duration-simple">{{ pass.duration }} minutes visible</div>
+  <div class="brightness-simple">{{ pass.brightness }}</div>
+</div>
         
         <div class="see-on-map-hint">
           <i class="bi bi-map-fill"></i>
