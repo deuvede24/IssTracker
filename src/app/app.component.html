@@ -1,23 +1,6 @@
-<!-- app.component.html - BOTTOM NAVIGATION LAYOUT -->
 <div class="app-container">
-  
-  <!-- Main Content Area - Ocupa todo el espacio -->
   <main class="main-content">
     <router-outlet></router-outlet>
   </main>
-  
-  <!-- Bottom Navigation Bar -->
-  <nav class="bottom-nav">
-    <button 
-      *ngFor="let item of navItems" 
-      class="nav-item"
-      [class.active]="isActive(item.id)"
-      [style.--item-color]="item.color"
-      (click)="navigateTo(item)"
-    >
-      <i [class]="item.icon" class="nav-icon"></i>
-      <span class="nav-label">{{ item.label }}</span>
-    </button>
-  </nav>
-  
+  <app-bottom-nav></app-bottom-nav>
 </div>

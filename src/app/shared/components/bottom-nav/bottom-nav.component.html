@@ -1,35 +1,14 @@
 <nav class="bottom-nav">
-  <a
-    routerLink="/"
-    routerLinkActive="active"
-    [routerLinkActiveOptions]="{ exact: true }"
-  >
-    <i class="icon-home"></i>
-    <span>Inicio</span>
-  </a>
-
-  <a
-    routerLink="/map"
-    routerLinkActive="active"
-  >
-    <i class="icon-map"></i>
-    <span>Mapa</span>
-  </a>
-
-  <a
-    routerLink="/history"
-    routerLinkActive="active"
-  >
-    <i class="icon-history"></i>
-    <span>Historial</span>
-  </a>
-
-  <a
-    routerLink="/alerts"
-    routerLinkActive="active"
-  >
-    <i class="icon-bell"></i>
-    <span>Alertas</span>
-  </a>
+  @for (item of navItems; track item.id) {
+    <a
+      [routerLink]="item.route"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: false }"
+      class="nav-item"
+      [style.--item-color]="item.color"
+    >
+      <i [class]="item.icon" class="nav-icon"></i>
+      <span class="nav-label">{{ item.label }}</span>
+    </a>
+  }
 </nav>
-
