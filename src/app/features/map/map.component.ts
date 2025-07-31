@@ -35,13 +35,13 @@ export class MapComponent implements OnInit {
   userLocation: [number, number] = [2.1689, 41.3879];
   mapStyles = {
     streets: 'mapbox://styles/mapbox/streets-v12',
-    night:   'mapbox://styles/mapbox/dark-v10',
+    night: 'mapbox://styles/mapbox/dark-v10',
     satellite: 'mapbox://styles/mapbox/satellite-v9',
   };
   currentStyle = signal<string>(this.mapStyles.streets);
 
   issStartPoint = signal<[number, number]>([2.160, 41.390]);
-  issEndPoint   = signal<[number, number]>([2.180, 41.385]);
+  issEndPoint = signal<[number, number]>([2.180, 41.385]);
 
   trajectoryData = signal<Feature<LineString, GeoJsonProperties>>({
     type: 'Feature',
@@ -60,43 +60,43 @@ export class MapComponent implements OnInit {
 
   // ← AÑADIDO: Array completo de pases (mismo que en home)
   allPasses = signal<PassMap[]>([
-    { 
-      id: '1', 
-      time: new Date(Date.now() + 2 * 3600000), 
-      duration: 4, 
-      from: 'Hospital Clínic', 
-      to: 'Sagrada Família' 
+    {
+      id: '1',
+      time: new Date(Date.now() + 2 * 3600000),
+      duration: 4,
+      from: 'Hospital Clínic',
+      to: 'Sagrada Família'
     },
-    { 
-      id: '2', 
-      time: new Date(Date.now() + 8 * 3600000), 
-      duration: 2, 
-      from: 'Park Güell', 
-      to: 'Port Vell' 
+    {
+      id: '2',
+      time: new Date(Date.now() + 8 * 3600000),
+      duration: 2,
+      from: 'Park Güell',
+      to: 'Port Vell'
     },
-    { 
-      id: '3', 
-      time: new Date(Date.now() + 25 * 3600000), 
-      duration: 6, 
-      from: 'Tibidabo', 
-      to: 'Barceloneta' 
+    {
+      id: '3',
+      time: new Date(Date.now() + 25 * 3600000),
+      duration: 6,
+      from: 'Tibidabo',
+      to: 'Barceloneta'
     }
   ]);
 
   // ← MODIFICADO: Ahora usa el pase seleccionado
-  currentPass = signal<PassMap|undefined>(undefined);
-  nextPass = computed<PassMap|undefined>(() => this.currentPass());
+  currentPass = signal<PassMap | undefined>(undefined);
+  nextPass = computed<PassMap | undefined>(() => this.currentPass());
 
-  constructor(private router: Router, private route: ActivatedRoute) {} // ← AÑADIDO route
+  constructor(private router: Router, private route: ActivatedRoute) { } // ← AÑADIDO route
 
   ngOnInit(): void {
     console.log('🗺️ MapComponent inicializado');
-    
+
     // ← AÑADIDO: Leer passId de la URL
     this.route.queryParams.subscribe(params => {
       const passId = params['passId'];
       let selectedPass: PassMap;
-      
+
       if (passId) {
         // Buscar pase específico
         selectedPass = this.allPasses().find(p => p.id === passId) || this.allPasses()[0];
@@ -106,7 +106,7 @@ export class MapComponent implements OnInit {
         selectedPass = this.allPasses()[0];
         console.log('🏠 Mostrando próximo pase');
       }
-      
+
       this.currentPass.set(selectedPass);
       this.updateMapForPass(selectedPass);
     });
@@ -116,16 +116,16 @@ export class MapComponent implements OnInit {
   updateMapForPass(pass: PassMap) {
     // Coordenadas diferentes para cada pase
     const passCoordinates = {
-      '1': { start: [2.160, 41.390], end: [2.180, 41.385] }, // Hospital → Sagrada
-      '2': { start: [2.140, 41.395], end: [2.190, 41.380] }, // Park Güell → Port
-      '3': { start: [2.150, 41.400], end: [2.170, 41.375] }  // Tibidabo → Barceloneta
+      '1': { start: [2.15251, 41.38948], end: [2.17448, 41.40335] }, // Hospital → Sagrada
+      '2': { start: [2.15365, 41.41483], end: [2.18215, 41.37716] }, // Park Güell → Port
+      '3': { start: [2.12050, 41.42292], end: [2.18892, 41.37891] } // Tibidabo → Barceloneta
     };
-    
+
     const coords = passCoordinates[pass.id as keyof typeof passCoordinates] || passCoordinates['1'];
-    
+
     this.issStartPoint.set(coords.start as [number, number]);
     this.issEndPoint.set(coords.end as [number, number]);
-    
+
     // Actualizar trajectory
     this.trajectoryData.set({
       type: 'Feature',
@@ -135,7 +135,7 @@ export class MapComponent implements OnInit {
         coordinates: [coords.start, coords.end]
       }
     });
-    
+
     console.log(`🛰️ Coordenadas actualizadas para pase ${pass.id}:`, coords);
   }
 
@@ -147,8 +147,8 @@ export class MapComponent implements OnInit {
     const curr = this.currentStyle();
     this.currentStyle.set(
       curr === this.mapStyles.streets ? this.mapStyles.night
-        : curr === this.mapStyles.night   ? this.mapStyles.satellite
-        : this.mapStyles.streets
+        : curr === this.mapStyles.night ? this.mapStyles.satellite
+          : this.mapStyles.streets
     );
   }
 
@@ -159,7 +159,7 @@ export class MapComponent implements OnInit {
     const el = document.createElement('div');
     el.textContent = '🛰️';
     el.className = 'iss-animated-marker';
-    el.style.fontSize = '1.5rem'; 
+    el.style.fontSize = '1.5rem';
     el.style.filter = 'drop-shadow(0 3px 8px rgba(0,0,0,0.6))';
 
     const [lng, lat] = this.trajectoryData().geometry.coordinates[0];
@@ -192,7 +192,7 @@ export class MapComponent implements OnInit {
 
   getNextPassTime() {
     return this.nextPass()?.time
-      .toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}) ?? '--:--';
+      .toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) ?? '--:--';
   }
 
   getNextPassDuration() {
@@ -212,14 +212,14 @@ export class MapComponent implements OnInit {
     return c === this.mapStyles.streets
       ? 'bi bi-moon-fill'
       : c === this.mapStyles.night
-      ? 'bi bi-globe'
-      : 'bi bi-sun-fill';
+        ? 'bi bi-globe'
+        : 'bi bi-sun-fill';
   }
 
   getViewName(): string {
     const c = this.currentStyle();
     if (c === this.mapStyles.streets) return 'Oscuro';
-    if (c === this.mapStyles.night)   return 'Satélite';
+    if (c === this.mapStyles.night) return 'Satélite';
     return 'Claro';
   }
 }
