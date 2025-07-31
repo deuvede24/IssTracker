@@ -2,7 +2,7 @@
  * Convierte grados a cardinal (ej. 315 => "Noroeste")
  */
 export function bearingToCardinal(bearing: number): string {
-  const directions = ['Norte', 'Noreste', 'Este', 'Sureste', 'Sur', 'Suroeste', 'Oeste', 'Noroeste'];
+  const directions = ['North', 'Northeast', 'East', 'Southeast', 'South', 'Southwest', 'West', 'Northwest'];
   const index = Math.round(((bearing % 360) / 45)) % 8;
   return directions[index];
 }
