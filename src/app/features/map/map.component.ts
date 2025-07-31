@@ -4,16 +4,18 @@ import { NgxMapboxGLModule } from 'ngx-mapbox-gl';
 import mapboxgl from 'mapbox-gl';
 import type { Feature, LineString, GeoJsonProperties } from 'geojson';
 import { environment } from '../../../environments/environment';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router'; // ← AÑADIDO ActivatedRoute
+import { PassMap } from '../../interfaces/pass.interface';
 
-interface Pass {
+
+/*interface Pass {
   id: string;
   time: Date;
   duration: number;
   from: string;
   to: string;
   timeToPass?: string;
-}
+}*/
 
 @Component({
   selector: 'app-map',
@@ -56,15 +58,85 @@ export class MapComponent implements OnInit {
   private movingISSMarker!: mapboxgl.Marker;
   animationRunning = signal<boolean>(false);
 
-  upcomingPasses = signal<Pass[]>([
-    { id: '1', time: new Date(Date.now() + 2 * 3600e3), duration: 4, from: 'Corte Inglés', to: 'Sagrada Fam.' }
+  // ← AÑADIDO: Array completo de pases (mismo que en home)
+  allPasses = signal<PassMap[]>([
+    { 
+      id: '1', 
+      time: new Date(Date.now() + 2 * 3600000), 
+      duration: 4, 
+      from: 'Hospital Clínic', 
+      to: 'Sagrada Família' 
+    },
+    { 
+      id: '2', 
+      time: new Date(Date.now() + 8 * 3600000), 
+      duration: 2, 
+      from: 'Park Güell', 
+      to: 'Port Vell' 
+    },
+    { 
+      id: '3', 
+      time: new Date(Date.now() + 25 * 3600000), 
+      duration: 6, 
+      from: 'Tibidabo', 
+      to: 'Barceloneta' 
+    }
   ]);
-  nextPass = computed<Pass|undefined>(() => this.upcomingPasses()[0]);
 
-  constructor(private router: Router) {}
+  // ← MODIFICADO: Ahora usa el pase seleccionado
+  currentPass = signal<PassMap|undefined>(undefined);
+  nextPass = computed<PassMap|undefined>(() => this.currentPass());
+
+  constructor(private router: Router, private route: ActivatedRoute) {} // ← AÑADIDO route
 
   ngOnInit(): void {
     console.log('🗺️ MapComponent inicializado');
+    
+    // ← AÑADIDO: Leer passId de la URL
+    this.route.queryParams.subscribe(params => {
+      const passId = params['passId'];
+      let selectedPass: PassMap;
+      
+      if (passId) {
+        // Buscar pase específico
+        selectedPass = this.allPasses().find(p => p.id === passId) || this.allPasses()[0];
+        console.log(`🎯 Mostrando pase específico: ${passId}`);
+      } else {
+        // Sin passId = mostrar próximo (el primero)
+        selectedPass = this.allPasses()[0];
+        console.log('🏠 Mostrando próximo pase');
+      }
+      
+      this.currentPass.set(selectedPass);
+      this.updateMapForPass(selectedPass);
+    });
+  }
+
+  // ← AÑADIDO: Actualizar coordenadas según el pase
+  updateMapForPass(pass: PassMap) {
+    // Coordenadas diferentes para cada pase
+    const passCoordinates = {
+      '1': { start: [2.160, 41.390], end: [2.180, 41.385] }, // Hospital → Sagrada
+      '2': { start: [2.140, 41.395], end: [2.190, 41.380] }, // Park Güell → Port
+      '3': { start: [2.150, 41.400], end: [2.170, 41.375] }  // Tibidabo → Barceloneta
+    };
+    
+    const coords = passCoordinates[pass.id as keyof typeof passCoordinates] || passCoordinates['1'];
+    
+    this.issStartPoint.set(coords.start as [number, number]);
+    this.issEndPoint.set(coords.end as [number, number]);
+    
+    // Actualizar trajectory
+    this.trajectoryData.set({
+      type: 'Feature',
+      properties: {},
+      geometry: {
+        type: 'LineString',
+        coordinates: [coords.start, coords.end]
+      }
+    });
+    
+    console.log(`🛰️ Coordenadas actualizadas para pase ${pass.id}:`, coords);
   }
 
   goBack() {
