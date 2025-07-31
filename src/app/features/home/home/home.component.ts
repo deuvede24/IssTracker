@@ -2,8 +2,10 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { PassHome } from '../../../interfaces/pass.interface';
+// Y BORRA la interface Pass de este archivo
 
-interface Pass {
+/*interface Pass {
   id: string;
   time: Date;
   duration: number;
@@ -13,7 +15,7 @@ interface Pass {
   brightness?: string;
   timeToPass?: string;
   description?: string;
-}
+}*/
 
 @Component({
   selector: 'app-home',
@@ -25,7 +27,7 @@ interface Pass {
 export class HomeComponent implements OnInit {
   
   // ===== SIGNALS =====
-  visiblePasses = signal<Pass[]>([
+  visiblePasses = signal<PassHome[]>([
     {
       id: '1',
       time: new Date(Date.now() + 2 * 3600000), // En 2 horas
@@ -79,7 +81,7 @@ export class HomeComponent implements OnInit {
   /**
    * Ir al mapa mostrando un pase específico
    */
-  goToMapWithPass(pass: Pass) {
+  goToMapWithPass(pass: PassHome) {
     // Navegamos al mapa y pasamos el ID del pase como parámetro
     this.router.navigate(['/map'], { 
       queryParams: { passId: pass.id } 
