@@ -3,7 +3,7 @@
   
   <!-- HEADER simple y claro -->
   <div class="simple-header">
-    <div class="location-badge">📍 Barcelona</div>
+  <div class="location-badge">{{ locationBadge() }}</div>
     <div class="app-icon">🛰️</div>
     <h1>ISS Tracker</h1>
     <p class="tagline">See the Space Station pass overhead</p>
@@ -32,6 +32,22 @@
         <h3>ISS right now</h3>
         <div class="distance-big">{{ currentDistance() }} km</div>
         <p>{{ distanceDescription() }}</p>
+    <!---   <div class="iss-direction-visual">
+        <span class="iss-satellite">🛰️</span>
+        
+        <div class="direction-info">
+          <div class="direction-line"></div>
+          <div class="direction-text">
+            {{ directionIcon() }} {{ issDirection().cardinal }}
+          </div>
+          <div class="movement-status">{{ issMovement() }}</div>
+        </div>
+        
+        <span class="you-location">📍 You</span>
+      </div>-->
+       <button class="view-details-btn" (click)="showISSNow()">
+        View details
+      </button>
       </div>
     </div>
   </div>
