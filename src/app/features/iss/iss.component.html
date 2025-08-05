@@ -1,0 +1,94 @@
+<!-- src/app/features/iss/iss.component.html -->
+
+<div class="iss-page">
+  
+  <!-- HEADER -->
+  <div class="iss-header">
+    <button class="back-button" (click)="goBack()">
+      <i class="bi bi-arrow-left"></i>
+    </button>
+    <h1>🛰️ ISS Tracker</h1>
+    <button class="refresh-button" (click)="refreshData()">
+      <i class="bi bi-arrow-clockwise"></i>
+    </button>
+  </div>
+
+  <!-- DATOS PRINCIPALES -->
+  <div class="info-grid">
+    
+    <div class="info-card distance">
+      <div class="label">Distance</div>
+      <div class="value">{{ distance() }} km</div>
+    </div>
+    
+    <div class="info-card direction">
+      <div class="label">Direction</div>
+      <div class="value">
+        {{ directionIcon() }} {{ cardinal() }}
+      </div>
+    </div>
+    
+    <div class="info-card movement">
+      <div class="label">Movement</div>
+      <div class="value">{{ movement() }}</div>
+    </div>
+    
+    <div class="info-card altitude">
+      <div class="label">Altitude</div>
+      <div class="value">{{ issPosition()?.altitude || '--' }} km</div>
+    </div>
+    
+    <div class="info-card speed">
+      <div class="label">Speed</div>
+      <div class="value">{{ issPosition()?.velocity || '--' }} km/h</div>
+    </div>
+    
+    <div class="info-card visibility">
+      <div class="label">Visibility</div>
+      <div class="value">{{ issPosition()?.visibility || '--' }}</div>
+    </div>
+    
+  </div>
+
+  <!-- AVIONCITO VISUAL -->
+  <div class="iss-visual">
+    <div class="iss-direction-display">
+      <span class="iss-satellite">🛰️</span>
+      
+      <div class="direction-line-container">
+        <div class="direction-line"></div>
+        <div class="direction-label">
+          {{ directionIcon() }} {{ cardinal() }}
+        </div>
+        <div class="movement-label">{{ movement() }}</div>
+      </div>
+      
+      <span class="you-location">📍 You</span>
+    </div>
+  </div>
+
+  <!-- INFO CONTEXTUAL -->
+  <div class="context-info">
+    <div class="status-card">
+      <h3>ISS Status</h3>
+      <p><strong>Currently over:</strong> {{ getOverRegion() }}</p>
+      <p><strong>Your location:</strong> {{ userLocation()?.city || 'Unknown' }}</p>
+      <p><strong>Last update:</strong> {{ timeSinceUpdate() }}</p>
+    </div>
+    
+    <div class="note">
+      <i class="bi bi-info-circle"></i>
+      The arrow shows the direction from your location to the ISS.
+    </div>
+  </div>
+
+  <!-- PLACEHOLDER PARA MAPA FUTURO -->
+  <div class="map-placeholder">
+    <div class="placeholder-content">
+      <i class="bi bi-globe"></i>
+      <h3>World Map</h3>
+      <p>Coming soon: Interactive map showing ISS position</p>
+    </div>
+  </div>
+
+</div>
