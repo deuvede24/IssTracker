@@ -13,12 +13,12 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/map/map.component').then(m => m.MapComponent)
   },
- /* {
+  {
     path: 'iss',
     loadComponent: () =>
-      import('./features/iss/iss.component').then(m => m.ISSComponent)
+      import('./features/iss/iss.component').then(m => m.IssComponent)
   },
-  {
+ /* {
     path: 'alerts',
     loadComponent: () =>
       import('./features/alerts/alerts.component').then(m => m.AlertsComponent)
