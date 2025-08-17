@@ -76,13 +76,7 @@
           <span class="disappear-point">🔴 {{ pass.to }}</span>
         </div>
 
-        <!-- NUEVO: Mostrar dirección cardinal -->
-        @if (pass.direction) {
-        <div class="pass-direction">
-          <span class="compass">{{ pass.compass }}</span>
-          <span class="direction-text">{{ pass.direction }}</span>
-        </div>
-        }
+        <div class="pass-elevation-human">🏔️ {{ pass.altitude }}</div>
 
         <div class="pass-duration-simple">{{ pass.duration }} minutes visible</div>
         <div class="brightness-simple">{{ pass.brightness }}</div>
