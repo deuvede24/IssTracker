@@ -8,6 +8,8 @@ export interface PassCore {
 
 export interface PassMap extends PassCore {
     readonly timeToPass?: string;
+    readonly viewable?: boolean;
+    readonly reason?: string;
 }
 
 export interface PassHome extends PassCore {
@@ -18,6 +20,8 @@ export interface PassHome extends PassCore {
     readonly direction?: string;
     readonly compass?: string;
     readonly azimuth?: { appear: number; disappear: number };
+    readonly viewable?: boolean;
+    readonly reason?: string;
 }
 
 export type Pass = PassHome | PassMap;
