@@ -82,13 +82,63 @@
     </div>
   </div>
 
-  <!-- PLACEHOLDER PARA MAPA FUTURO -->
+  <!-- PLACEHOLDER PARA MAPA FUTURO 
   <div class="map-placeholder">
     <div class="placeholder-content">
       <i class="bi bi-globe"></i>
       <h3>World Map</h3>
       <p>Coming soon: Interactive map showing ISS position</p>
     </div>
+  </div>-->
+  <div class="world-map-section">
+  <h3>🌍 ISS Position on World Map</h3>
+  
+  <div class="world-map-container">
+    <mgl-map 
+      [accessToken]="mapboxToken" 
+      [style]="'mapbox://styles/mapbox/dark-v10'" 
+      [zoom]="[2]" 
+      [center]="issWorldCenter()"
+      class="world-map"
+      (mapLoad)="onWorldMapLoad($event)"
+      [preserveDrawingBuffer]="true">
+      
+      <!-- MARCADOR ISS REAL -->
+      <mgl-marker [lngLat]="issWorldPosition()">
+        <div class="iss-world-marker">
+          <div class="world-satellite-glow"></div>
+          <div class="world-satellite-icon">🛰️</div>
+          <div class="iss-info-popup">
+            <div class="popup-content">
+              <div class="iss-speed">{{ issPosition()?.velocity || '--' }} km/h</div>
+              <div class="iss-altitude">{{ issPosition()?.altitude || '--' }} km</div>
+            </div>
+          </div>
+        </div>
+      </mgl-marker>
+
+      <!-- MARCADOR USUARIO -->
+      <mgl-marker [lngLat]="userWorldPosition()">
+        <div class="user-world-marker">
+          <div class="user-pulse"></div>
+          <div class="user-icon">📍</div>
+        </div>
+      </mgl-marker>
+
+      <!-- LÍNEA DE CONEXIÓN ISS-USUARIO -->
+      <mgl-geojson-source id="connection-line" [data]="connectionLineData()"></mgl-geojson-source>
+      <mgl-line-layer 
+        id="connection" 
+        source="connection-line" 
+        [paint]="{
+          'line-color': '#64ffda',
+          'line-width': 2,
+          'line-dasharray': [6, 4],
+          'line-opacity': 0.6
+        }">
+      </mgl-line-layer>
+    </mgl-map>
+  
   </div>
 
 </div>
