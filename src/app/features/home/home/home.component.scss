@@ -484,3 +484,28 @@
 .view-details-btn:hover {
   background: #52d8b3;
 }
+
+.brightness-simple {
+  font-size: 0.9rem;           // Más grande para las estrellas
+  color: #ffd700;
+  letter-spacing: 0.05em;      // Espaciado entre estrellas
+  line-height: 1.2;
+  font-weight: 500;            // Más grueso para mejor visibilidad
+}
+
+.pass-description-simple {
+  // ... existing styles ...
+  
+  // ✅ NUEVO: Estilo para elevación humana
+  .pass-elevation-human {
+    font-size: 0.8rem;
+    color: #4fc3f7;           // Azul claro para destacar
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    
+    // Icono de montaña más visible
+    &::first-letter {
+      font-size: 1em;
+    }
+  }
+}
