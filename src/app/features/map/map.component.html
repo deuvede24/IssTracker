@@ -12,7 +12,7 @@
 
   <!-- MAPA LIMPIO -->
   <div class="mobile-map-container">
-    <mgl-map [accessToken]="mapboxToken" [style]="currentStyle()" [zoom]="[12]" [center]="userLocation"
+    <mgl-map [accessToken]="mapboxToken" [style]="currentStyle()" [zoom]="[12]" [center]="mapCenter()"
       class="mobile-map" (mapLoad)="onMapLoad($event)">
 
       <!-- Fuente GeoJSON -->
@@ -28,7 +28,7 @@
       </mgl-line-layer>
 
       <!-- MARCADORES CON PUNCH -->
-      <mgl-marker [lngLat]="userLocation">
+      <mgl-marker [lngLat]="mapCenter()">
         <div class="location-badge-marker">
           <div class="location-pulse"></div>
           <div class="location-icon">
