@@ -1,9 +1,9 @@
 <!-- INICIO - LA APP MAS SIMPLE DEL MUNDO -->
 <div class="simple-home">
-  
+
   <!-- HEADER simple y claro -->
   <div class="simple-header">
-  <div class="location-badge">{{ locationBadge() }}</div>
+    <div class="location-badge">{{ locationBadge() }}</div>
     <div class="app-icon">🛰️</div>
     <h1>ISS Tracker</h1>
     <p class="tagline">See the Space Station pass overhead</p>
@@ -32,7 +32,7 @@
         <h3>ISS right now</h3>
         <div class="distance-big">{{ currentDistance() }} km</div>
         <p>{{ distanceDescription() }}</p>
-    <!---   <div class="iss-direction-visual">
+        <!---   <div class="iss-direction-visual">
         <span class="iss-satellite">🛰️</span>
         
         <div class="direction-info">
@@ -45,9 +45,9 @@
         
         <span class="you-location">📍 You</span>
       </div>-->
-       <button class="view-details-btn" (click)="showISSNow()">
-        View details
-      </button>
+        <button class="view-details-btn" (click)="showISSNow()">
+          View details
+        </button>
       </div>
     </div>
   </div>
@@ -55,48 +55,46 @@
   <!-- PRÓXIMOS PASES (clickeables) -->
   <div class="next-passes-simple">
     <h2>🗓️ When you'll see it</h2>
-    
+
     @for (pass of visiblePasses(); track pass.id; let i = $index) {
-      <div 
-        class="pass-card-simple" 
-        (click)="goToMapWithPass(pass)"
-        [class.next-pass]="i === 0">
-        
-        @if (i === 0) {
-          <div class="next-badge">NEXT</div>
-        }
-        
-        <div class="pass-time-simple">
-          <div class="day">{{ pass.time | date:'EEEE' }}</div>
-          <div class="time">{{ pass.time | date:'HH:mm' }}</div>
-        </div>
-        
-      <div class="pass-description-simple">
-  <div class="pass-route-visual">
-    <span class="appear-point">🟢 {{ pass.from }}</span>
-    <div class="pass-arrow">→</div>
-    <span class="disappear-point">🔴 {{ pass.to }}</span>
-  </div>
-  
-  <!-- NUEVO: Mostrar dirección cardinal -->
-  @if (pass.direction) {
-    <div class="pass-direction">
-      <span class="compass">{{ pass.compass }}</span>
-      <span class="direction-text">{{ pass.direction }}</span>
-    </div>
-  }
-  
-  <div class="pass-duration-simple">{{ pass.duration }} minutes visible</div>
-  <div class="brightness-simple">{{ pass.brightness }}</div>
-</div>
-        
-        <div class="see-on-map-hint">
-          <i class="bi bi-map-fill"></i>
-          <span>See on map</span>
-          <i class="bi bi-arrow-right"></i>
-        </div>
-        
+    <div class="pass-card-simple" [class.night-pass]="isNightTime(pass.time)" [class.day-pass]="!isNightTime(pass.time)"
+      (click)="goToMapWithPass(pass)" [class.next-pass]="i === 0">
+
+      @if (i === 0) {
+      <div class="next-badge">NEXT</div>
+      }
+
+      <div class="pass-time-simple">
+        <div class="day">{{ pass.time | date:'EEEE, MMM d' }}</div>
+        <div class="time">{{ pass.time | date:'HH:mm' }}</div>
       </div>
+
+      <div class="pass-description-simple">
+        <div class="pass-route-visual">
+          <span class="appear-point">🟢 {{ pass.from }}</span>
+          <div class="pass-arrow">→</div>
+          <span class="disappear-point">🔴 {{ pass.to }}</span>
+        </div>
+
+        <!-- NUEVO: Mostrar dirección cardinal -->
+        @if (pass.direction) {
+        <div class="pass-direction">
+          <span class="compass">{{ pass.compass }}</span>
+          <span class="direction-text">{{ pass.direction }}</span>
+        </div>
+        }
+
+        <div class="pass-duration-simple">{{ pass.duration }} minutes visible</div>
+        <div class="brightness-simple">{{ pass.brightness }}</div>
+      </div>
+
+      <div class="see-on-map-hint">
+        <i class="bi bi-map-fill"></i>
+        <span>See on map</span>
+        <i class="bi bi-arrow-right"></i>
+      </div>
+
+    </div>
     }
   </div>
 
@@ -116,7 +114,7 @@
       <span>Add my home</span>
       <small>See when it passes over your house</small>
     </button>
-    
+
     <button class="setting-item" (click)="toggleNotifications()">
       <i class="bi bi-bell"></i>
       <span>Alerts</span>

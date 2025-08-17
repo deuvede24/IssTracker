@@ -187,7 +187,43 @@
     background: rgba(100, 255, 218, 0.15);
     box-shadow: 0 0 20px rgba(100, 255, 218, 0.2);
   }
+    &.night-pass {
+    border-color: #64ffda !important;
+    background: rgba(100, 255, 218, 0.15) !important;
+    box-shadow: 0 0 20px rgba(100, 255, 218, 0.2) !important;
+    
+    .pass-time-simple .time {
+      color: #64ffda !important;
+      text-shadow: 0 0 8px rgba(100, 255, 218, 0.4);
+    }
+    
+    &:hover {
+      transform: translateY(-6px) !important;
+      box-shadow: 0 0 30px rgba(100, 255, 218, 0.3) !important;
+    }
+  }
   
+  &.day-pass {
+    opacity: 0.6;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    
+    .pass-time-simple .time {
+      color: rgba(255, 255, 255, 0.7) !important;
+    }
+    
+    &::after {
+      content: '☀️ Not visible';
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      font-size: 0.7rem;
+      color: rgba(255, 255, 255, 0.6);
+      background: rgba(0, 0, 0, 0.3);
+      padding: 0.2rem 0.5rem;
+      border-radius: 8px;
+    }
+  }
   &:hover {
     transform: translateY(-4px);
     background: rgba(255,255,255,0.15);
