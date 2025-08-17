@@ -4,9 +4,10 @@ import { Injectable, signal, inject } from '@angular/core';
 import { PassHome } from '../interfaces/pass.interface';
 import { SatelliteCalculatorService, PassCalculation } from './satellite-calculator.service';
 import { bearingToCardinal } from '../utils/geodesy';
+import { LocalReferenceService } from './local-reference.service';
 
 // Referencias de Barcelona por dirección cardinal
-const BARCELONA_LANDMARKS = {
+/*const BARCELONA_LANDMARKS = {
   north: 'Collserola',
   northeast: 'Sagrada Família',
   east: 'Sant Adrià',
@@ -15,7 +16,7 @@ const BARCELONA_LANDMARKS = {
   southwest: 'Hospital Clínic',
   west: 'Zona Universitària',
   northwest: 'Tibidabo'
-};
+};*/
 
 @Injectable({
   providedIn: 'root'
@@ -25,6 +26,7 @@ export class ISSPassesService {
   private satelliteCalculator = inject(SatelliteCalculatorService);
   private realPasses = signal<PassHome[]>([]);
   private lastFetchLocation: { lat: number; lon: number } | null = null;
+  private localReference = inject(LocalReferenceService);
 
   get passes() {
     return this.realPasses.asReadonly();
@@ -119,7 +121,7 @@ export class ISSPassesService {
         new Date(a.time).getTime() - new Date(b.time).getTime()
       );
 
-     
+
 
       this.realPasses.set(finalPasses);
       this.lastFetchLocation = { lat: latitude, lon: longitude };
@@ -140,6 +142,51 @@ export class ISSPassesService {
   /**
    * 🔄 Transformar cálculo satellite.js a PassHome
    */
+  /* private transformToPassHome(
+     calculation: PassCalculation,
+     index: number,
+     userLat: number,
+     userLon: number
+   ): PassHome {
+ 
+     // Obtener referencias de Barcelona según azimut
+     const fromLandmark = this.getLandmarkFromAzimuth(calculation.startAzimuth);
+     const toLandmark = this.getLandmarkFromAzimuth(calculation.endAzimuth);
+ 
+     // Crear dirección cardinal
+     const fromCardinal = bearingToCardinal(calculation.startAzimuth);
+     const toCardinal = bearingToCardinal(calculation.endAzimuth);
+     const direction = `${fromCardinal} → ${toCardinal}`;
+ 
+     // Emoji de brújula
+     const compass = this.getCompassEmoji(calculation.startAzimuth, calculation.endAzimuth);
+ 
+     // Descripción de brillo
+     const brightness = this.getBrightnessDescription(calculation.brightness);
+ 
+     // Descripción de altitud
+     const altitude = this.getAltitudeDescription(calculation.maxElevation);
+ 
+     // Calcular tiempo restante
+     const timeToPass = this.calculateTimeToPass(calculation.startTime);
+ 
+     return {
+       id: `satellite-${index + 1}`,
+       time: calculation.startTime,
+       duration: calculation.duration,
+       from: fromLandmark,
+       to: toLandmark,
+       altitude,
+       brightness,
+       timeToPass,
+       direction,
+       compass,
+       azimuth: {
+         appear: Math.round(calculation.startAzimuth),
+         disappear: Math.round(calculation.endAzimuth)
+       }
+     };
+   }*/
   private transformToPassHome(
     calculation: PassCalculation,
     index: number,
@@ -147,34 +194,39 @@ export class ISSPassesService {
     userLon: number
   ): PassHome {
 
-    // Obtener referencias de Barcelona según azimut
-    const fromLandmark = this.getLandmarkFromAzimuth(calculation.startAzimuth);
-    const toLandmark = this.getLandmarkFromAzimuth(calculation.endAzimuth);
+    // ✅ USAR MATEMÁTICAS en lugar de Barcelona hardcodeado
+    const localRef = this.localReference.generateLocalReferences(
+      userLat,
+      userLon,
+      calculation.startAzimuth,
+      calculation.endAzimuth,
+      calculation.maxElevation
+    );
 
     // Crear dirección cardinal
-    const fromCardinal = bearingToCardinal(calculation.startAzimuth);
-    const toCardinal = bearingToCardinal(calculation.endAzimuth);
-    const direction = `${fromCardinal} → ${toCardinal}`;
+    const direction = `${localRef.from} → ${localRef.to}`;
 
-    // Emoji de brújula
+    // Emoji de brújula (mantener tu lógica actual)
     const compass = this.getCompassEmoji(calculation.startAzimuth, calculation.endAzimuth);
 
-    // Descripción de brillo
-    const brightness = this.getBrightnessDescription(calculation.brightness);
+    const isNight = this.isNightPass(calculation.startTime);
+    const brightness = isNight
+      ? this.getBrightnessDescription(calculation.brightness)  // Solo si es de noche
+      : 'Day pass - not visible';                              // Si es de día
 
-    // Descripción de altitud
-    const altitude = this.getAltitudeDescription(calculation.maxElevation);
+    // ✅ USAR elevación humana del servicio
+    const altitude = localRef.elevationDescription;
 
-    // Calcular tiempo restante
+    // Calcular tiempo restante (mantener tu lógica actual)
     const timeToPass = this.calculateTimeToPass(calculation.startTime);
 
     return {
       id: `satellite-${index + 1}`,
       time: calculation.startTime,
       duration: calculation.duration,
-      from: fromLandmark,
-      to: toLandmark,
-      altitude,
+      from: localRef.from,        // ✅ "Northwest" en lugar de "Tibidabo"
+      to: localRef.to,            // ✅ "Southeast" en lugar de "Barceloneta"
+      altitude,                   // ✅ "High in the sky - look up 45°"
       brightness,
       timeToPass,
       direction,
@@ -210,20 +262,20 @@ export class ISSPassesService {
   /**
    * 🏙️ Obtener landmark de Barcelona según azimut
    */
-  private getLandmarkFromAzimuth(azimuth: number): string {
-    const normalizedAzimuth = (azimuth + 360) % 360;
-
-    if (normalizedAzimuth >= 337.5 || normalizedAzimuth < 22.5) return BARCELONA_LANDMARKS.north;
-    if (normalizedAzimuth >= 22.5 && normalizedAzimuth < 67.5) return BARCELONA_LANDMARKS.northeast;
-    if (normalizedAzimuth >= 67.5 && normalizedAzimuth < 112.5) return BARCELONA_LANDMARKS.east;
-    if (normalizedAzimuth >= 112.5 && normalizedAzimuth < 157.5) return BARCELONA_LANDMARKS.southeast;
-    if (normalizedAzimuth >= 157.5 && normalizedAzimuth < 202.5) return BARCELONA_LANDMARKS.south;
-    if (normalizedAzimuth >= 202.5 && normalizedAzimuth < 247.5) return BARCELONA_LANDMARKS.southwest;
-    if (normalizedAzimuth >= 247.5 && normalizedAzimuth < 292.5) return BARCELONA_LANDMARKS.west;
-    if (normalizedAzimuth >= 292.5 && normalizedAzimuth < 337.5) return BARCELONA_LANDMARKS.northwest;
-
-    return BARCELONA_LANDMARKS.north; // Fallback
-  }
+  /* private getLandmarkFromAzimuth(azimuth: number): string {
+     const normalizedAzimuth = (azimuth + 360) % 360;
+ 
+     if (normalizedAzimuth >= 337.5 || normalizedAzimuth < 22.5) return BARCELONA_LANDMARKS.north;
+     if (normalizedAzimuth >= 22.5 && normalizedAzimuth < 67.5) return BARCELONA_LANDMARKS.northeast;
+     if (normalizedAzimuth >= 67.5 && normalizedAzimuth < 112.5) return BARCELONA_LANDMARKS.east;
+     if (normalizedAzimuth >= 112.5 && normalizedAzimuth < 157.5) return BARCELONA_LANDMARKS.southeast;
+     if (normalizedAzimuth >= 157.5 && normalizedAzimuth < 202.5) return BARCELONA_LANDMARKS.south;
+     if (normalizedAzimuth >= 202.5 && normalizedAzimuth < 247.5) return BARCELONA_LANDMARKS.southwest;
+     if (normalizedAzimuth >= 247.5 && normalizedAzimuth < 292.5) return BARCELONA_LANDMARKS.west;
+     if (normalizedAzimuth >= 292.5 && normalizedAzimuth < 337.5) return BARCELONA_LANDMARKS.northwest;
+ 
+     return BARCELONA_LANDMARKS.north; // Fallback
+   }*/
 
   /**
    * 🧭 Obtener emoji de brújula según trayectoria
@@ -240,12 +292,33 @@ export class ISSPassesService {
   /**
    * ⭐ Descripción de brillo según magnitud
    */
-  private getBrightnessDescription(magnitude: number): string {
+  /*private getBrightnessDescription(magnitude: number): string {
     if (magnitude < -3) return 'Extremely bright like Venus ⭐⭐⭐';
     if (magnitude < -2) return 'Very bright ⭐⭐';
     if (magnitude < -1) return 'Bright ⭐';
     return 'Visible ✨';
+  }*/
+
+    private getBrightnessDescription(magnitude: number): string {
+  let stars = '';
+  let description = '';
+  
+  if (magnitude <= -3.0) {
+    stars = '★★★★';
+    description = 'Extremely bright like Venus';
+  } else if (magnitude <= -2.0) {
+    stars = '★★★☆';
+    description = 'Very bright like Jupiter';
+  } else if (magnitude <= -1.0) {
+    stars = '★★☆☆';
+    description = 'Bright like a star';
+  } else {
+    stars = '★☆☆☆';
+    description = 'Visible';
   }
+  
+  return `${stars} ${description}`;
+}
 
   /**
    * 🏔️ Descripción de altitud según elevación máxima
