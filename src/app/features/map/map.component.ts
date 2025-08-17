@@ -11,6 +11,7 @@ import { PassMap } from '../../interfaces/pass.interface';
 //import { N2YOPassesService } from '../../services/n2yo-passes.service'; // ← SOLO N2YO
 import { ISSPassesService } from '../../services/iss-passes.service';
 import { LocationSimpleService } from '../../services/location-simple.service';
+import { LocalReferenceService } from '../../services/local-reference.service';
 
 @Component({
   selector: 'app-map',
@@ -26,6 +27,7 @@ export class MapComponent implements OnInit {
   //private n2yoService = inject(N2YOPassesService);
   private passesService = inject(ISSPassesService);
   private locationService = inject(LocationSimpleService);
+  private localReference = inject(LocalReferenceService);
 
   mapboxToken = environment.mapboxToken;
   private map?: mapboxgl.Map;
@@ -156,7 +158,7 @@ try {
   initialZoom = signal<number>(12);
 
   // ===== COORDENADAS DINÁMICAS =====
-  updateMapForPass(pass: PassMap) {
+ /* updateMapForPass(pass: PassMap) {
     console.log(`🛰️ Actualizando mapa para pase: ${pass.id}`);
     console.log(`📍 From: ${pass.from}, To: ${pass.to}`);
 
@@ -192,8 +194,68 @@ try {
   
 
     console.log(`✅ Trayectoria actualizada para pase ${pass.id}`);
-  }
-private fitMapToShowEverything(
+  }*/
+
+   updateMapForPass(pass: PassMap) {
+    console.log(`🛰️ Actualizando mapa para pase: ${pass.id}`);
+    console.log(`📍 From: ${pass.from}, To: ${pass.to}`);
+
+    const userCoords = this.userLocation();
+    
+    // ✅ BUSCAR EL PASE COMPLETO con datos de azimuth
+    const allPasses = this.passesService.passes();
+    const fullPass = allPasses.find(p => p.id === pass.id);
+    
+    if (!fullPass || !fullPass.azimuth) {
+      console.error('❌ No se encontró pase completo con azimuth data');
+      return;
+    }
+
+    // ✅ USAR MATEMÁTICAS para calcular coordenadas
+    const localRef = this.localReference.generateLocalReferences(
+      userCoords[1], // lat
+      userCoords[0], // lon  
+      fullPass.azimuth.appear,
+      fullPass.azimuth.disappear,
+      50 // Elevación por defecto
+    );
+
+    const startCoords: [number, number] = localRef.startCoords;
+    const endCoords: [number, number] = localRef.endCoords;
+
+    console.log(`🎯 Coordenadas calculadas matemáticamente:`, { 
+      user: userCoords, 
+      start: startCoords, 
+      end: endCoords 
+    });
+
+    this.issStartPoint.set(startCoords);
+    this.issEndPoint.set(endCoords);
+
+    // Actualizar trajectory
+    this.trajectoryData.set({
+      type: 'Feature',
+      properties: {},
+      geometry: {
+        type: 'LineString',
+        coordinates: [startCoords, endCoords]
+      }
+    });
+
+    if (this.map) {
+      this.fitMapToShowEverythingPerfect(userCoords, startCoords, endCoords);
+    }
+
+    if (this.movingISSMarker) {
+      const [lng, lat] = startCoords;
+      this.movingISSMarker.setLngLat([lng, lat]);
+      console.log('🛰️ Satélite reposicionado al nuevo punto de inicio matemático');
+    }
+
+    console.log(`✅ Trayectoria actualizada matemáticamente para pase ${pass.id}`);
+  } 
+
+/*private fitMapToShowEverything(
   userCoords: [number, number], 
   startCoords: [number, number], 
   endCoords: [number, number]
@@ -227,10 +289,34 @@ private fitMapToShowEverything(
   });
   
   console.log(`🎯 Zoom ${zoom} centrado en USUARIO (distancia max: ${maxDistance.toFixed(1)}km)`);
-}
+}*/
+
+private fitMapToShowEverythingPerfect(
+    userCoords: [number, number], 
+    startCoords: [number, number], 
+    endCoords: [number, number]
+  ) {
+    if (!this.map) return;
+
+    // 🎯 ZOOM PERFECTO CENTRADO EN USUARIO
+    const isMobile = window.innerWidth <= 768;
+    const perfectZoom = isMobile ? 15 : 13; // Calles visibles
+    
+    console.log(`🎯 Zoom perfecto: ${perfectZoom} (mobile: ${isMobile})`);
+    
+    // 🎯 SIEMPRE CENTRAR EN USUARIO
+    this.map.flyTo({
+      center: userCoords,  // Usuario SIEMPRE en el centro
+      zoom: perfectZoom,   // Zoom fijo perfecto
+      duration: 800,       // Suave y rápido
+      essential: true      // No cancelable
+    });
+    
+    console.log(`🎯 Mapa centrado en usuario con zoom ${perfectZoom}`);
+  }
 
 // 🔧 MÉTODO AUXILIAR: Calcular distancia
-private calculateDistance(point1: [number, number], point2: [number, number]): number {
+/*private calculateDistance(point1: [number, number], point2: [number, number]): number {
   const [lon1, lat1] = point1;
   const [lon2, lat2] = point2;
   
@@ -259,7 +345,7 @@ private calculateDistance(point1: [number, number], point2: [number, number]): n
     });
     
     console.log('📍 Mapa centrado en usuario');
-  }
+  }*/
 
   /**
    * 🛰️ Centrar en el pase (botón adicional) 
@@ -286,7 +372,7 @@ private calculateDistance(point1: [number, number], point2: [number, number]): n
   /**
    * 🏙️ Coordenadas reales de Barcelona
    */
-  private getLandmarkCoordinates(landmark: string): [number, number] {
+ /* private getLandmarkCoordinates(landmark: string): [number, number] {
     const coordinates: Record<string, [number, number]> = {
       'Tibidabo': [2.120, 41.422],
       'Collserola': [2.100, 41.420],
@@ -303,7 +389,7 @@ private calculateDistance(point1: [number, number], point2: [number, number]): n
     };
 
     return coordinates[landmark] || [2.169, 41.387]; // Centro Barcelona
-  }
+  }*/
 
   ngOnDestroy(): void {
     // Cleanup si es necesario
