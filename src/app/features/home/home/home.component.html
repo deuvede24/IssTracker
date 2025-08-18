@@ -78,7 +78,10 @@
 
         <div class="pass-elevation-human">🏔️ {{ pass.altitude }}</div>
 
+        @if (isNightTime(pass.time)) {
         <div class="pass-duration-simple">{{ pass.duration }} minutes visible</div>
+        }
+
         <div class="brightness-simple">{{ pass.brightness }}</div>
       </div>
 
@@ -109,11 +112,23 @@
       <small>See when it passes over your house</small>
     </button>
 
-    <button class="setting-item" (click)="toggleNotifications()">
+    <!--  <button class="setting-item" (click)="toggleNotifications()">
       <i class="bi bi-bell"></i>
       <span>Alerts</span>
       <small>Notify 15 min before</small>
+    </button>-->
+
+
+    <button class="setting-item" (click)="toggleNotifications()" [class.notifications-enabled]="notificationsEnabled()">
+      <i [class]="notificationsEnabled() ? 'bi bi-bell-fill' : 'bi bi-bell'"></i>
+      <span>{{ notificationsEnabled() ? "Alerts ON" : "Enable Alerts" }}</span>
+      <small>
+        {{ notificationsEnabled()
+        ? "You’ll be notified 15 min before each pass"
+        : "Get notified 15 min before visible passes" }}
+      </small>
     </button>
+
   </div>
 
 </div>
