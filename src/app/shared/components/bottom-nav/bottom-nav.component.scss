@@ -47,17 +47,7 @@
       transform: scale(1.1);
     }
     
-    &::before {
-      content: '';
-      position: absolute;
-      top: -0.75rem;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 24px;
-      height: 3px;
-      background: var(--item-color, #64ffda);
-      border-radius: 0 0 2px 2px;
-    }
+   
   }
   
   &:active {

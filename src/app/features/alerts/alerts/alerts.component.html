@@ -1,1 +1,108 @@
-<p>alerts works!</p>
+<div class="alerts-page">
+    <!-- HEADER -->
+    <div class="alerts-header">
+        <h1>🔔 Notification Settings</h1>
+        <p>Get notified before ISS passes overhead</p>
+    </div>
+
+    <!-- ESTADO GENERAL -->
+    <div class="notification-status" [class.enabled]="isEnabled()">
+        <div class="status-icon">
+            <i [class]="isEnabled() ? 'bi bi-bell-fill' : 'bi bi-bell-slash'"></i>
+        </div>
+        <div class="status-info">
+            <h3>{{ isEnabled() ? 'Notifications Enabled' : 'Notifications Disabled' }}</h3>
+            <p>{{ getStatusDescription() }}</p>
+        </div>
+        <button class="toggle-main" (click)="toggleMainNotifications()" [class.enabled]="isEnabled()">
+            {{ isEnabled() ? 'Disable' : 'Enable' }}
+        </button>
+    </div>
+
+    <!-- TIPOS DE NOTIFICACIONES -->
+    @if (isEnabled()) {
+    <div class="notification-types">
+        <h2>Notification Types</h2>
+
+        @for (type of notificationTypes; track type.id) {
+        <div class="notification-type" [class.enabled]="isTypeEnabled(type.id)">
+            <div class="type-icon">{{ type.icon }}</div>
+            <div class="type-info">
+                <h4>{{ type.title }}</h4>
+                <p>{{ type.description }}</p>
+                @if (type.id === '1week' || type.id === '1day') {
+                <small class="coming-soon">Coming soon!</small>
+                }
+            </div>
+            <label class="toggle-switch" [class.disabled]="type.id === '1week' || type.id === '1day'">
+                <input type="checkbox" [checked]="isTypeEnabled(type.id)"
+                    [disabled]="type.id === '1week' || type.id === '1day'"
+                    (change)="toggleNotificationType(type.id, $event)">
+                <span class="slider"></span>
+            </label>
+        </div>
+        }
+    </div>
+    }
+
+    <!-- ESTADO DE NOTIFICACIONES PROGRAMADAS -->
+    @if (isEnabled()) {
+    <div class="scheduled-notifications">
+        <h2>Active Notifications</h2>
+        <div class="notification-summary">
+            <div class="summary-item">
+                <span class="count">{{ scheduledCount() }}</span>
+                <span class="label">Scheduled alerts</span>
+            </div>
+            <div class="summary-item">
+                <span class="count">{{ enabledTypesCount() }}</span>
+                <span class="label">Types enabled</span>
+            </div>
+        </div>
+    </div>
+    }
+
+    <!-- ACCIONES -->
+    <div class="notification-actions">
+        @if (isEnabled()) {
+        <button class="action-btn test" (click)="showTestNotification()">
+            <i class="bi bi-play-circle"></i>
+            Test Notification
+        </button>
+
+        <!-- <button class="action-btn refresh" (click)="refreshNotifications()">
+        <i class="bi bi-arrow-clockwise"></i>
+        Refresh Alerts
+      </button>-->
+        <button class="action-btn refresh" (click)="refreshNotifications()" [disabled]="refreshing()">
+            <i [class]="refreshing() ? 'bi bi-arrow-clockwise rotating' : 'bi bi-arrow-clockwise'"></i>
+            {{ refreshing() ? 'Refreshing...' : 'Refresh Alerts' }}
+        </button>
+        }
+
+        @if (!browserSupported) {
+        <div class="browser-warning">
+            <i class="bi bi-exclamation-triangle"></i>
+            Your browser doesn't support notifications
+        </div>
+        }
+    </div>
+
+    <!-- PRÓXIMOS PASES INFO -->
+    @if (isEnabled()) {
+    <div class="next-passes-info">
+        <h3>Next Visible Passes</h3>
+        @for (pass of nextVisiblePasses(); track pass.id; let i = $index) {
+        @if (i < 3) { <div class="pass-preview">
+            <div class="pass-time">
+                {{ pass.time | date:'EEE, MMM d, HH:mm' }}
+            </div>
+            <div class="pass-details">
+                {{ pass.from }} → {{ pass.to }} • {{ pass.duration }}min
+            </div>
+    </div>
+    }
+    }
+</div>
+}
+</div>

@@ -2,7 +2,7 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-  { path: '',       redirectTo: 'home', pathMatch: 'full' },
+  { path: '', redirectTo: 'home', pathMatch: 'full' },
   {
     path: 'home',
     loadComponent: () =>
@@ -18,13 +18,13 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/iss/iss.component').then(m => m.IssComponent)
   },
- /* {
+  {
     path: 'alerts',
     loadComponent: () =>
-      import('./features/alerts/alerts.component').then(m => m.AlertsComponent)
-  },*/
+      import('./features/alerts/alerts/alerts.component').then(m => m.AlertsComponent)
+  },
   { path: '**', redirectTo: 'home' }
 ];
 
-export class AppRoutingModule {}
+export class AppRoutingModule { }
 
