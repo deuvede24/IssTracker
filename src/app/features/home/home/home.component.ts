@@ -7,7 +7,6 @@ import { PassHome } from '../../../interfaces/pass.interface';
 import { calculateBearing, bearingToCardinal, BARCELONA_PLACES } from '../../../utils/geodesy';
 import { ISSSimpleService } from '../../../services/iss-simple.service';
 import { LocationSimpleService } from '../../../services/location-simple.service';
-//import { N2YOPassesService } from '../../../services/n2yo-passes.service'; // ← SOLO N2YO
 import { ISSPassesService } from '../../../services/iss-passes.service';
 import { NotificationService } from '../../../services/notification.service';
 
@@ -22,14 +21,12 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   private issService = inject(ISSSimpleService);
   private locationService = inject(LocationSimpleService);
-  //private n2yoService = inject(N2YOPassesService); // ← SOLO N2YO
   private passesService = inject(ISSPassesService);
   private notificationService = inject(NotificationService);
 
   realISSPosition = this.issService.position;
   notificationsEnabled = computed(() => this.notificationService.isEnabled);
 
-  //visiblePasses = this.n2yoService.passes;
   visiblePasses = this.passesService.passes;
 
   currentDistance = computed(() => {
@@ -83,15 +80,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     return latDiff < 45 ? 'Getting closer' : 'Moving away';
   });
 
-  /*directionIcon = computed(() => {
-    const bearing = this.issDirection().bearing;
-
-    if (bearing >= 315 || bearing < 45) return '↓';
-    if (bearing >= 45 && bearing < 135) return '↙️';
-    if (bearing >= 135 && bearing < 225) return '↑';
-    return '↘️';
-  });*/
-
   constructor(private router: Router) { }
 
   // ===== CON LAZY LOADING =====
@@ -121,7 +109,6 @@ export class HomeComponent implements OnInit, OnDestroy {
         setTimeout(async () => {
           try {
             console.log('🛰️ Loading REAL passes with Satellite.js for:', userLocation.city);
-            // await this.n2yoService.getRealPasses(userLocation.latitude, userLocation.longitude);
             await this.passesService.getRealPasses(userLocation.latitude, userLocation.longitude);
 
             const passes = this.passesService.passes();
@@ -136,7 +123,7 @@ export class HomeComponent implements OnInit, OnDestroy {
           } catch (error) {
             console.error('❌ Error en lazy loading de pases:', error);
           }
-        }, 1000); // 1 segundo de delay
+        }, 1000); // 1 sec delay
       }
 
       console.log('✅ Home iniciado correctamente');
@@ -173,7 +160,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       const userLocation = this.locationService.location();
 
       if (userLocation) {
-        // Con lazy loading también aquí
+        // lazy loading 
         setTimeout(async () => {
           await this.passesService.refreshPasses(userLocation.latitude, userLocation.longitude);
         }, 500);
@@ -196,7 +183,6 @@ export class HomeComponent implements OnInit, OnDestroy {
      }
    }*/
 
-  // 🔔 REEMPLAZAR método existente:
   async toggleNotifications(): Promise<void> {
     console.log('🔔 Toggle notificaciones');
 
@@ -239,6 +225,6 @@ export class HomeComponent implements OnInit, OnDestroy {
   isNightTime(passTime: Date): boolean {
     const hour = passTime.getHours();
     console.log('🌙 Checking pass time:', passTime, 'Hour:', hour); // Debug
-    return hour >= 19 || hour <= 5; // 7PM - 6AM
+    return hour >= 19 || hour <= 5; // 7PM - 5AM
   }
 }
