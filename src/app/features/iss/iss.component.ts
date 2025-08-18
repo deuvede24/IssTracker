@@ -176,27 +176,63 @@ export class IssComponent implements OnInit, OnDestroy {
   }
 
   // 🔄 AJUSTAR VISTA DEL MAPA PARA MOSTRAR ISS Y USUARIO
+  /* private fitMapToPoints(): void {
+     if (!this.worldMap) return;
+ 
+     const issPos = this.issWorldPosition();
+     const userPos = this.userWorldPosition();
+ 
+     // Si ISS y usuario están muy lejos, hacer zoom más global
+     const distance = this.calculateMapDistance(issPos, userPos);
+ 
+     if (distance > 10000) { // Muy lejos
+       this.worldMap.setZoom(1);
+       this.worldMap.setCenter(this.issWorldCenter());
+     } else {
+       // Ajustar bounds para mostrar ambos puntos
+       const bounds = new mapboxgl.LngLatBounds()
+         .extend(issPos)
+         .extend(userPos);
+ 
+       this.worldMap.fitBounds(bounds, {
+         padding: 50,
+         maxZoom: 4
+       });
+     }
+   }*/
   private fitMapToPoints(): void {
     if (!this.worldMap) return;
 
     const issPos = this.issWorldPosition();
     const userPos = this.userWorldPosition();
 
-    // Si ISS y usuario están muy lejos, hacer zoom más global
+    // 🔧 CAMBIO: Mejor algoritmo para distancias grandes
     const distance = this.calculateMapDistance(issPos, userPos);
 
     if (distance > 10000) { // Muy lejos
-      this.worldMap.setZoom(1);
-      this.worldMap.setCenter(this.issWorldCenter());
+      // 🔧 NUEVO: Usar bounds en lugar de zoom fijo
+      const bounds = new mapboxgl.LngLatBounds()
+        .extend(issPos)
+        .extend(userPos);
+
+      this.worldMap.fitBounds(bounds, {
+        padding: 100,
+        maxZoom: 2,    // Zoom máximo cuando están muy lejos
+        minZoom: 1,     // Zoom mínimo 
+        duration: 1500,
+        essential: false
+      });
     } else {
-      // Ajustar bounds para mostrar ambos puntos
+      // 🔧 MANTENER: Para distancias normales (como está)
       const bounds = new mapboxgl.LngLatBounds()
         .extend(issPos)
         .extend(userPos);
 
       this.worldMap.fitBounds(bounds, {
         padding: 50,
-        maxZoom: 4
+        maxZoom: 4,
+        duration: 1000,
+        essential: false
       });
     }
   }
