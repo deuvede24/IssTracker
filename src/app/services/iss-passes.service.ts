@@ -6,17 +6,6 @@ import { SatelliteCalculatorService, PassCalculation } from './satellite-calcula
 import { bearingToCardinal } from '../utils/geodesy';
 import { LocalReferenceService } from './local-reference.service';
 
-// Referencias de Barcelona por dirección cardinal
-/*const BARCELONA_LANDMARKS = {
-  north: 'Collserola',
-  northeast: 'Sagrada Família',
-  east: 'Sant Adrià',
-  southeast: 'Barceloneta',
-  south: 'Montjuïc',
-  southwest: 'Hospital Clínic',
-  west: 'Zona Universitària',
-  northwest: 'Tibidabo'
-};*/
 
 @Injectable({
   providedIn: 'root'
@@ -51,7 +40,7 @@ export class ISSPassesService {
       const calculations = await this.satelliteCalculator.calculatePasses(
         latitude,
         longitude,
-        14, // 7 días
+        14, // 14 días
         5  // mínimo 5° elevación
       );
 
