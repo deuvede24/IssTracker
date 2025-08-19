@@ -1,5 +1,5 @@
-// src/environments/environment.prod.ts
+// src/environments/environment.ts
 export const environment = {
-  production: true,
+  production: false,
   mapboxToken: 'pk.eyJ1IjoiZGFuaXZpbGxhZGlheiIsImEiOiJjbWRrNXNiOHQwdTEzMmtzYzllMDAzdTZpIn0.KzUjQbqLneDRQBFsgx-k3Q'
 };

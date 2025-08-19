@@ -48,4 +48,4 @@ Thumbs.db
 /scripts/
 
 # Entornos de desarrollo generados
-src/environments/environment.ts
+
