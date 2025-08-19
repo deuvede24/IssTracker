@@ -3,6 +3,7 @@
 app-map .mobile-map-container .map-legend {
   background: linear-gradient(135deg, #14249c, #3B4FBA) !important;
 }
+
 // ===== HEADER COHESIVO =====
 app-map .mobile-header {
   background: linear-gradient(135deg, #14249c, #3B4FBA) !important;
@@ -22,3 +23,23 @@ app-map .mobile-pass-info {
 }
 
 
+/* Al final del archivo src/styles.scss */
+
+/* iPhone - Bottom nav no se esconda */
+.app-bottom-nav,
+app-bottom-nav,
+.bottom-nav,
+bottom-nav {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Altura correcta en iPhone */
+.simple-home,
+.mobile-map-page,
+.simple-map {
+  min-height: 100vh;
+  min-height: 100svh;
+  /* iOS 15+ */
+  min-height: -webkit-fill-available;
+  /* Fallback */
+}
