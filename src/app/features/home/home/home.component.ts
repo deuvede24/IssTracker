@@ -28,6 +28,18 @@ export class HomeComponent implements OnInit, OnDestroy {
   notificationsEnabled = computed(() => this.notificationService.isEnabled);
 
   visiblePasses = this.passesService.passes;
+  loadedOnce = signal(false);
+
+  usingCache = computed(() => {
+    const arr = this.visiblePasses();
+    return (arr?.length ?? 0) > 0 && arr.every(p => (p.reason ?? '').toLowerCase().includes('cached'));
+  });
+
+  isEmpty = computed(() =>
+    this.loadedOnce() && this.visiblePasses().length === 0
+  );
+
+  retry = () => this.refreshData();
 
   currentDistance = computed(() => {
     const userLoc = this.locationService.location();
@@ -122,8 +134,12 @@ export class HomeComponent implements OnInit, OnDestroy {
             }
           } catch (error) {
             console.error('❌ Error en lazy loading de pases:', error);
+          } finally {
+            this.loadedOnce.set(true); // ✅ éxito o fallo
           }
         }, 1000); // 1 sec delay
+      } else {
+        this.loadedOnce.set(true); // ✅ sin ubicación
       }
 
       console.log('✅ Home iniciado correctamente');
@@ -171,17 +187,6 @@ export class HomeComponent implements OnInit, OnDestroy {
       console.error('❌ Error obteniendo ubicación:', error);
     }
   }
-
-  /* toggleNotifications() {
-     console.log('🔔 Toggle notificaciones');
-     if ('Notification' in window) {
-       if (Notification.permission === 'default') {
-         Notification.requestPermission().then(permission => {
-           console.log('Notification permission:', permission);
-         });
-       }
-     }
-   }*/
 
   async toggleNotifications(): Promise<void> {
     console.log('🔔 Toggle notificaciones');

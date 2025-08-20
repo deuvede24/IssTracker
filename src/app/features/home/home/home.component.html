@@ -56,6 +56,22 @@
   <div class="next-passes-simple">
     <h2>🗓️ When you'll see it</h2>
 
+    <!-- 👇 Aviso sutil si lo que ves viene de caché -->
+    @if (usingCache() && visiblePasses().length > 0) {
+
+    <div class="status-note" aria-live="polite">
+      Showing last known passes (cached)
+    </div>
+    }
+
+    <!-- 👇 Estado vacío con Retry si, tras el intento, no hay nada que mostrar -->
+    @if (isEmpty()) {
+    <div class="empty-state">
+      <p>We couldn’t calculate passes right now.</p>
+      <button class="retry-btn" (click)="retry()">Retry</button>
+    </div>
+    }
+
     @for (pass of visiblePasses(); track pass.id; let i = $index) {
     <div class="pass-card-simple" [class.night-pass]="isNightTime(pass.time)" [class.day-pass]="!isNightTime(pass.time)"
       (click)="goToMapWithPass(pass)" [class.next-pass]="i === 0">
