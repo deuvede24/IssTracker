@@ -48,7 +48,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     return Math.round(this.issService.calculateDistanceFromUser(userLoc.latitude, userLoc.longitude));
   });
 
-  locationBadge = computed(() => {
+  /*locationBadge = computed(() => {
     const location = this.locationService.location();
     if (!location) return '📍 Getting location...';
 
@@ -57,7 +57,14 @@ export class HomeComponent implements OnInit, OnDestroy {
     } else {
       return `📍 ${location.city} (Default)`;
     }
+  });*/
+  // home.component.ts
+  locationBadge = computed(() => {
+    const loc = this.locationService.location();
+    if (!loc) return '📍 Getting location...';
+    return loc.detected ? `📍 ${loc.city}` : `📍 ≈ ${loc.city}`; // ≈ cuando no es GPS
   });
+
 
   distanceDescription = computed(() => {
     const distance = this.currentDistance();
