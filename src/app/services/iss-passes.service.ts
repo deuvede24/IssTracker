@@ -110,7 +110,11 @@ export class ISSPassesService {
         new Date(a.time).getTime() - new Date(b.time).getTime()
       );
 
-
+      try {
+        localStorage.setItem('last-valid-passes', JSON.stringify(finalPasses.slice(0, 3)));
+      } catch (e) {
+        console.warn('[passes] Could not persist cache:', e);
+      }
 
       this.realPasses.set(finalPasses);
       this.lastFetchLocation = { lat: latitude, lon: longitude };
@@ -288,26 +292,26 @@ export class ISSPassesService {
     return 'Visible ✨';
   }*/
 
-    private getBrightnessDescription(magnitude: number): string {
-  let stars = '';
-  let description = '';
-  
-  if (magnitude <= -3.0) {
-    stars = '★★★★';
-    description = 'Extremely bright like Venus';
-  } else if (magnitude <= -2.0) {
-    stars = '★★★☆';
-    description = 'Very bright like Jupiter';
-  } else if (magnitude <= -1.0) {
-    stars = '★★☆☆';
-    description = 'Bright like a star';
-  } else {
-    stars = '★☆☆☆';
-    description = 'Visible';
+  private getBrightnessDescription(magnitude: number): string {
+    let stars = '';
+    let description = '';
+
+    if (magnitude <= -3.0) {
+      stars = '★★★★';
+      description = 'Extremely bright like Venus';
+    } else if (magnitude <= -2.0) {
+      stars = '★★★☆';
+      description = 'Very bright like Jupiter';
+    } else if (magnitude <= -1.0) {
+      stars = '★★☆☆';
+      description = 'Bright like a star';
+    } else {
+      stars = '★☆☆☆';
+      description = 'Visible';
+    }
+
+    return `${stars} ${description}`;
   }
-  
-  return `${stars} ${description}`;
-}
 
   /**
    * 🏔️ Descripción de altitud según elevación máxima
@@ -344,57 +348,91 @@ export class ISSPassesService {
   /**
    * 🔄 Fallback con pases realistas (solo si satellite.js falla)
    */
-  private generateRealisticFallback(): PassHome[] {
-    const now = Date.now();
+  /* private generateRealisticFallback(): PassHome[] {
+     const now = Date.now();
+ 
+     return [
+       {
+         id: 'fallback-1',
+         time: new Date(now + 3 * 3600000),
+         duration: 6,
+         from: 'Tibidabo',
+         to: 'Barceloneta',
+         altitude: 'High in the sky',
+         brightness: 'Very bright ⭐⭐',
+         timeToPass: '3h 12min',
+         direction: 'Northwest → Southeast',
+         compass: '↘️',
+         azimuth: { appear: 315, disappear: 135 },
+         viewable: true,
+         reason: 'Fallback pass'
+       },
+       {
+         id: 'fallback-2',
+         time: new Date(now + 12 * 3600000),
+         duration: 4,
+         from: 'Hospital Clínic',
+         to: 'Sagrada Família',
+         altitude: 'Medium altitude',
+         brightness: 'Bright ⭐',
+         timeToPass: '12h 45min',
+         direction: 'Southwest → Northeast',
+         compass: '↗️',
+         azimuth: { appear: 225, disappear: 45 },
+         viewable: true,
+         reason: 'Fallback pass'
+       },
+       {
+         id: 'fallback-3',
+         time: new Date(now + 25 * 3600000),
+         duration: 5,
+         from: 'Collserola',
+         to: 'Montjuïc',
+         altitude: 'High in the sky',
+         brightness: 'Very bright ⭐⭐',
+         timeToPass: '1 day and 1h',
+         direction: 'North → South',
+         compass: '↓',
+         azimuth: { appear: 0, disappear: 180 },
+         viewable: true,
+         reason: 'Fallback pass'
+       }
+     ];
+   }*/
 
-    return [
-      {
-        id: 'fallback-1',
-        time: new Date(now + 3 * 3600000),
-        duration: 6,
-        from: 'Tibidabo',
-        to: 'Barceloneta',
-        altitude: 'High in the sky',
-        brightness: 'Very bright ⭐⭐',
-        timeToPass: '3h 12min',
-        direction: 'Northwest → Southeast',
-        compass: '↘️',
-        azimuth: { appear: 315, disappear: 135 },
-        viewable: true,
-        reason: 'Fallback pass'
-      },
-      {
-        id: 'fallback-2',
-        time: new Date(now + 12 * 3600000),
-        duration: 4,
-        from: 'Hospital Clínic',
-        to: 'Sagrada Família',
-        altitude: 'Medium altitude',
-        brightness: 'Bright ⭐',
-        timeToPass: '12h 45min',
-        direction: 'Southwest → Northeast',
-        compass: '↗️',
-        azimuth: { appear: 225, disappear: 45 },
-        viewable: true,
-        reason: 'Fallback pass'
-      },
-      {
-        id: 'fallback-3',
-        time: new Date(now + 25 * 3600000),
-        duration: 5,
-        from: 'Collserola',
-        to: 'Montjuïc',
-        altitude: 'High in the sky',
-        brightness: 'Very bright ⭐⭐',
-        timeToPass: '1 day and 1h',
-        direction: 'North → South',
-        compass: '↓',
-        azimuth: { appear: 0, disappear: 180 },
-        viewable: true,
-        reason: 'Fallback pass'
-      }
-    ];
+  private generateRealisticFallback(): PassHome[] {
+    const cached = localStorage.getItem('last-valid-passes');
+    if (!cached) return [];
+
+    try {
+      const raw: any[] = JSON.parse(cached);
+      const now = Date.now();
+
+      const list = raw
+        .map((p) => {
+          const time = new Date(p.time);
+          if (isNaN(time.getTime())) return null; // descarta corruptos
+
+          const isFuture = time.getTime() > now;
+          const viewable = isFuture && this.isNightPass(time);
+
+          return {
+            ...p,
+            time,
+            timeToPass: isFuture ? this.calculateTimeToPass(time) : 'Passed',
+            reason: 'Last known data (cached)',
+            viewable
+          } as PassHome;
+        })
+        .filter(Boolean) as PassHome[];
+
+      // por si acaso, ordénalos otra vez
+      return list.sort((a, b) => a.time.getTime() - b.time.getTime());
+    } catch {
+      return [];
+    }
   }
+
 
   /**
    * 🔄 Refrescar pases
