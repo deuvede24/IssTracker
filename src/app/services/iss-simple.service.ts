@@ -74,9 +74,13 @@ export class ISSSimpleService {
   async getCurrentPosition(): Promise<ISSCurrentPosition> {
     // 🎯 MÚLTIPLES FUENTES - Probamos hasta que una funcione
     const apiSources = [
+
+      
       {
-        name: 'open-notify.org',          // ← PRIMERO (más rápido)
-        url: 'http://api.open-notify.org/iss-now.json',
+        //name: 'open-notify.org',          //as fallback
+        name: 'open-notify (proxied)',
+        //url: 'http://api.open-notify.org/iss-now.json',
+        url: '/api/iss-now',
         parser: (data: any) => ({
           latitude: parseFloat(data.iss_position.latitude),
           longitude: parseFloat(data.iss_position.longitude),
@@ -87,7 +91,7 @@ export class ISSSimpleService {
         })
       },
       {
-        name: 'wheretheiss.at',           // ← SEGUNDO (como fallback)
+        name: 'wheretheiss.at',
         url: 'https://api.wheretheiss.at/v1/satellites/25544',
         parser: (data: any) => ({
           latitude: data.latitude,
@@ -97,7 +101,7 @@ export class ISSSimpleService {
           timestamp: data.timestamp,
           visibility: data.visibility
         })
-      }
+      },
     ];
 
     // Probar cada API hasta que una funcione
