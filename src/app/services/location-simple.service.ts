@@ -7,17 +7,17 @@ export interface UserLocationSimple {
   longitude: number;
   city: string;
   detected: boolean;
-  accuracy?: number; // ← NUEVO: precisión en metros
-  source?: string;   // ← NUEVO: GPS, WiFi, etc.
+  accuracy?: number; // precisión en metros
+  source?: string;   // GPS, WiFi, etc.
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class LocationSimpleService {
-  
+
   private currentLocation = signal<UserLocationSimple | null>(null);
-  
+
   get location() {
     return this.currentLocation.asReadonly();
   }
@@ -28,19 +28,19 @@ export class LocationSimpleService {
   async getUserLocation(): Promise<UserLocationSimple> {
     try {
       console.log('📍 Obteniendo ubicación GPS (móvil optimizado)...');
-      
+
       // 🔄 SIEMPRE pedir ubicación nueva (no caché)
       const position = await this.getCurrentPositionMobile();
-      
+
       console.log('✅ Ubicación GPS obtenida:', {
         lat: position.latitude,
         lon: position.longitude,
         accuracy: position.accuracy
       });
-      
+
       // Detectar ciudad
       const city = this.detectCityFromCoords(position.latitude, position.longitude);
-      
+
       const location: UserLocationSimple = {
         latitude: position.latitude,
         longitude: position.longitude,
@@ -49,25 +49,51 @@ export class LocationSimpleService {
         accuracy: position.accuracy,
         source: position.accuracy < 100 ? 'GPS' : 'WiFi/Cell'
       };
-      
+
       this.currentLocation.set(location);
+      localStorage.setItem('last-location', JSON.stringify(location));
       console.log('✅ Ubicación actualizada:', location);
       return location;
-      
+
     } catch (error) {
-      console.log('⚠️ Error geolocation, usando Barcelona por defecto');
-      console.log('Error details:', error);
-      
-      const fallback: UserLocationSimple = {
-        latitude: 41.3851,
-        longitude: 2.1734,
-        city: 'Barcelona',
-        detected: false,
-        source: 'Default'
-      };
-      
-      this.currentLocation.set(fallback);
-      return fallback;
+      console.log('⚠️ GPS failed, trying IP geolocation...');
+
+      try {
+        const response = await fetch('https://ipapi.co/json/');
+        const data = await response.json();
+
+        const location: UserLocationSimple = {
+          latitude: data.latitude,
+          longitude: data.longitude,
+          city: data.city || data.region || data.country_name || 'Unknown location',
+          detected: false,
+          accuracy: 50000,
+          source: 'IP-based'
+        };
+
+        localStorage.setItem('last-location', JSON.stringify(location));
+        this.currentLocation.set(location);
+        console.log('📍 Location from IP:', location.city);
+        return location;
+
+      } catch (ipError) {
+        const cached = localStorage.getItem('last-location');
+        if (cached) {
+          const loc = JSON.parse(cached);
+          this.currentLocation.set({ ...loc, city: `${loc.city} (last known)`, source: 'Cached' });
+          return loc;
+        }
+
+        const fallback: UserLocationSimple = {
+          latitude: 0,
+          longitude: 0,
+          city: 'Location unavailable',
+          detected: false,
+          source: 'None'
+        };
+        this.currentLocation.set(fallback);
+        return fallback;
+      }
     }
   }
 
@@ -75,8 +101,8 @@ export class LocationSimpleService {
    * 📱 Geolocation optimizada para móvil
    */
   private getCurrentPositionMobile(): Promise<{
-    latitude: number, 
-    longitude: number, 
+    latitude: number,
+    longitude: number,
     accuracy: number
   }> {
     return new Promise((resolve, reject) => {
@@ -89,7 +115,7 @@ export class LocationSimpleService {
       const options = {
         enableHighAccuracy: true,    // Usar GPS si está disponible
         timeout: 15000,              // 15 segundos timeout (móvil puede tardar)
-        maximumAge: 300000                // NO usar caché - siempre ubicación fresca
+        maximumAge: 300000           // 5 mincaché 
       };
 
       navigator.geolocation.getCurrentPosition(
@@ -103,14 +129,14 @@ export class LocationSimpleService {
         },
         (error) => {
           console.log('❌ Error GPS:', error.message);
-          
+
           // 🔄 RETRY con configuración menos exigente
           const fallbackOptions = {
             enableHighAccuracy: false,  // Usar WiFi/Cell si GPS falla
             timeout: 10000,
             maximumAge: 300000          // Permitir caché de 5 min
           };
-          
+
           navigator.geolocation.getCurrentPosition(
             (position) => {
               console.log(`📶 Ubicación aproximada obtenida - Precisión: ${position.coords.accuracy}m`);
@@ -153,7 +179,7 @@ export class LocationSimpleService {
     if (lat >= 25.5 && lat <= 26.0 && lon >= -100.5 && lon <= -100.0) {
       return 'Monterrey';
     }
-    
+
     return `Lat: ${lat.toFixed(2)}, Lon: ${lon.toFixed(2)}`;
   }
 
