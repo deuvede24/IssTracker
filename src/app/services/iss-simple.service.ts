@@ -75,7 +75,18 @@ export class ISSSimpleService {
     // 🎯 MÚLTIPLES FUENTES - Probamos hasta que una funcione
     const apiSources = [
 
-      
+      {
+        name: 'wheretheiss.at',
+        url: 'https://api.wheretheiss.at/v1/satellites/25544',
+        parser: (data: any) => ({
+          latitude: data.latitude,
+          longitude: data.longitude,
+          altitude: data.altitude,
+          velocity: data.velocity,
+          timestamp: data.timestamp,
+          visibility: data.visibility
+        })
+      },
       {
         //name: 'open-notify.org',          //as fallback
         name: 'open-notify (proxied)',
@@ -89,19 +100,7 @@ export class ISSSimpleService {
           timestamp: data.timestamp,
           visibility: 'unknown'
         })
-      },
-      {
-        name: 'wheretheiss.at',
-        url: 'https://api.wheretheiss.at/v1/satellites/25544',
-        parser: (data: any) => ({
-          latitude: data.latitude,
-          longitude: data.longitude,
-          altitude: data.altitude,
-          velocity: data.velocity,
-          timestamp: data.timestamp,
-          visibility: data.visibility
-        })
-      },
+      }
     ];
 
     // Probar cada API hasta que una funcione
