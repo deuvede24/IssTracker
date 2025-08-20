@@ -107,20 +107,20 @@ export class MapComponent implements OnInit {
       console.log('⚠️ Error ubicación para mapa, usando Barcelona');
     }
 
- // 🚀 CARGA INMEDIATA para pases del mapa
-try {
-  const userLoc = this.locationService.location();
-  if (userLoc) {
-    console.log('🔍 Cargando pases INMEDIATAMENTE para mapa...');
-    await this.passesService.getRealPasses(userLoc.latitude, userLoc.longitude);
-  }
+    // 🚀 CARGA INMEDIATA para pases del mapa
+    try {
+      const userLoc = this.locationService.location();
+      if (userLoc) {
+        console.log('🔍 Cargando pases INMEDIATAMENTE para mapa...');
+        await this.passesService.getRealPasses(userLoc.latitude, userLoc.longitude);
+      }
 
-  const availablePasses = this.allPasses();
-  console.log('🗺️ Pases disponibles para Map:', availablePasses.length);
+      const availablePasses = this.allPasses();
+      console.log('🗺️ Pases disponibles para Map:', availablePasses.length);
 
-} catch (error) {
-  console.error('❌ Error cargando pases para mapa:', error);
-}
+    } catch (error) {
+      console.error('❌ Error cargando pases para mapa:', error);
+    }
 
     // 🔄 GESTIÓN DE QUERY PARAMS CON RETRY
     this.route.queryParams.subscribe(params => {
@@ -151,52 +151,52 @@ try {
       };
 
       // Empezar el setup con un pequeño delay
-     setupPass(); 
+      setupPass();
     });
   }
 
   initialZoom = signal<number>(12);
 
   // ===== COORDENADAS DINÁMICAS =====
- /* updateMapForPass(pass: PassMap) {
-    console.log(`🛰️ Actualizando mapa para pase: ${pass.id}`);
-    console.log(`📍 From: ${pass.from}, To: ${pass.to}`);
+  /* updateMapForPass(pass: PassMap) {
+     console.log(`🛰️ Actualizando mapa para pase: ${pass.id}`);
+     console.log(`📍 From: ${pass.from}, To: ${pass.to}`);
+ 
+     // Calcular coordenadas dinámicamente
+     const startCoords = this.getLandmarkCoordinates(pass.from);
+     const endCoords = this.getLandmarkCoordinates(pass.to);
+     const userCoords = this.userLocation();
+ 
+     console.log(`🎯 Coordenadas calculadas:`, { user: userCoords, start: startCoords, end: endCoords });
+ 
+     this.issStartPoint.set(startCoords);
+     this.issEndPoint.set(endCoords);
+ 
+     // Actualizar trajectory
+     this.trajectoryData.set({
+       type: 'Feature',
+       properties: {},
+       geometry: {
+         type: 'LineString',
+         coordinates: [startCoords, endCoords]
+       }
+     });
+ 
+     if (this.map) {
+       this.fitMapToShowEverything(userCoords, startCoords, endCoords);
+     }
+ 
+     if (this.movingISSMarker) {
+     const [lng, lat] = startCoords;
+     this.movingISSMarker.setLngLat([lng, lat]);
+     console.log('🛰️ Satélite reposicionado al nuevo punto de inicio');
+   }
+   
+ 
+     console.log(`✅ Trayectoria actualizada para pase ${pass.id}`);
+   }*/
 
-    // Calcular coordenadas dinámicamente
-    const startCoords = this.getLandmarkCoordinates(pass.from);
-    const endCoords = this.getLandmarkCoordinates(pass.to);
-    const userCoords = this.userLocation();
-
-    console.log(`🎯 Coordenadas calculadas:`, { user: userCoords, start: startCoords, end: endCoords });
-
-    this.issStartPoint.set(startCoords);
-    this.issEndPoint.set(endCoords);
-
-    // Actualizar trajectory
-    this.trajectoryData.set({
-      type: 'Feature',
-      properties: {},
-      geometry: {
-        type: 'LineString',
-        coordinates: [startCoords, endCoords]
-      }
-    });
-
-    if (this.map) {
-      this.fitMapToShowEverything(userCoords, startCoords, endCoords);
-    }
-
-    if (this.movingISSMarker) {
-    const [lng, lat] = startCoords;
-    this.movingISSMarker.setLngLat([lng, lat]);
-    console.log('🛰️ Satélite reposicionado al nuevo punto de inicio');
-  }
-  
-
-    console.log(`✅ Trayectoria actualizada para pase ${pass.id}`);
-  }*/
-
-   updateMapForPass(pass: PassMap) {
+  /* updateMapForPass(pass: PassMap) {
     console.log(`🛰️ Actualizando mapa para pase: ${pass.id}`);
     console.log(`📍 From: ${pass.from}, To: ${pass.to}`);
 
@@ -253,47 +253,95 @@ try {
     }
 
     console.log(`✅ Trayectoria actualizada matemáticamente para pase ${pass.id}`);
-  } 
+  } */
 
-/*private fitMapToShowEverything(
-  userCoords: [number, number], 
-  startCoords: [number, number], 
-  endCoords: [number, number]
-) {
-  if (!this.map) return;
+  updateMapForPass(pass: PassMap) {
+    console.log(`🛰️ Actualizando mapa para pase: ${pass.id}`);
 
-  // 🎯 SIEMPRE centrar en el USUARIO como referencia
-  const userLat = userCoords[1];
-  const userLon = userCoords[0];
-  
-  // Calcular distancia máxima desde usuario a puntos ISS
-  const distanceToStart = this.calculateDistance(userCoords, startCoords);
-  const distanceToEnd = this.calculateDistance(userCoords, endCoords);
-  const maxDistance = Math.max(distanceToStart, distanceToEnd);
-  
-  const isMobile = window.innerWidth <= 768;
-  
-  // 🎯 Zoom inteligente basado en distancia desde usuario
-  let zoom = 12;
-  if (maxDistance < 3) zoom = isMobile ? 14 : 13;        // Muy cerca
-  else if (maxDistance < 8) zoom = isMobile ? 13 : 12;   // Cerca  
-  else if (maxDistance < 15) zoom = isMobile ? 12 : 11;  // Normal
-  else zoom = isMobile ? 11 : 10;                        // Lejos
-  
-  // 🎯 CENTRAR EN USUARIO, no en bounds automáticos
-  this.map.flyTo({
-    center: userCoords,  // Usuario SIEMPRE en el centro
-    zoom,
-    duration: 800,       // Suave y rápido
-    essential: true      // No cancelable
-  });
-  
-  console.log(`🎯 Zoom ${zoom} centrado en USUARIO (distancia max: ${maxDistance.toFixed(1)}km)`);
-}*/
+    // 1) Ubicación real (sin defaults)
+    const u = this.locationService.location();
+    if (!u) {
+      console.warn('[map] No hay user location aún; esperando...');
+      return; // tu setup/retry ya volverá a llamar
+    }
+    const userLonLat: [number, number] = [u.longitude, u.latitude];
 
-private fitMapToShowEverythingPerfect(
+    // 2) Pase completo con azimuth
+    const full = this.passesService.passes().find(p => p.id === pass.id);
+    if (!full?.azimuth) {
+      console.warn('[map] Pase sin azimuth; no se puede dibujar');
+      return;
+    }
+
+    // 3) Calcular start/end con tu LocalReference (userLat, userLon)
+    const ref = this.localReference.generateLocalReferences(
+      u.latitude,
+      u.longitude,
+      full.azimuth.appear,
+      full.azimuth.disappear,
+      50 // o tu maxElevation si la tienes
+    );
+
+    const start: [number, number] = ref.startCoords; // [lon, lat]
+    const end: [number, number] = ref.endCoords;   // [lon, lat]
+
+    this.issStartPoint.set(start);
+    this.issEndPoint.set(end);
+    this.trajectoryData.set({
+      type: 'Feature',
+      properties: {},
+      geometry: { type: 'LineString', coordinates: [start, end] }
+    });
+
+    if (this.map) this.fitMapToShowEverythingPerfect(userLonLat, start, end);
+
+    if (this.movingISSMarker) {
+      this.movingISSMarker.setLngLat(start);
+    }
+
+    console.log(`✅ Trayectoria actualizada para pase ${pass.id}`, { user: userLonLat, start, end });
+  }
+
+
+  /*private fitMapToShowEverything(
     userCoords: [number, number], 
     startCoords: [number, number], 
+    endCoords: [number, number]
+  ) {
+    if (!this.map) return;
+  
+    // 🎯 SIEMPRE centrar en el USUARIO como referencia
+    const userLat = userCoords[1];
+    const userLon = userCoords[0];
+    
+    // Calcular distancia máxima desde usuario a puntos ISS
+    const distanceToStart = this.calculateDistance(userCoords, startCoords);
+    const distanceToEnd = this.calculateDistance(userCoords, endCoords);
+    const maxDistance = Math.max(distanceToStart, distanceToEnd);
+    
+    const isMobile = window.innerWidth <= 768;
+    
+    // 🎯 Zoom inteligente basado en distancia desde usuario
+    let zoom = 12;
+    if (maxDistance < 3) zoom = isMobile ? 14 : 13;        // Muy cerca
+    else if (maxDistance < 8) zoom = isMobile ? 13 : 12;   // Cerca  
+    else if (maxDistance < 15) zoom = isMobile ? 12 : 11;  // Normal
+    else zoom = isMobile ? 11 : 10;                        // Lejos
+    
+    // 🎯 CENTRAR EN USUARIO, no en bounds automáticos
+    this.map.flyTo({
+      center: userCoords,  // Usuario SIEMPRE en el centro
+      zoom,
+      duration: 800,       // Suave y rápido
+      essential: true      // No cancelable
+    });
+    
+    console.log(`🎯 Zoom ${zoom} centrado en USUARIO (distancia max: ${maxDistance.toFixed(1)}km)`);
+  }*/
+
+  private fitMapToShowEverythingPerfect(
+    userCoords: [number, number],
+    startCoords: [number, number],
     endCoords: [number, number]
   ) {
     if (!this.map) return;
@@ -301,9 +349,9 @@ private fitMapToShowEverythingPerfect(
     // 🎯 ZOOM PERFECTO CENTRADO EN USUARIO
     const isMobile = window.innerWidth <= 768;
     const perfectZoom = isMobile ? 15 : 13; // Calles visibles
-    
+
     console.log(`🎯 Zoom perfecto: ${perfectZoom} (mobile: ${isMobile})`);
-    
+
     // 🎯 SIEMPRE CENTRAR EN USUARIO
     this.map.flyTo({
       center: userCoords,  // Usuario SIEMPRE en el centro
@@ -311,41 +359,41 @@ private fitMapToShowEverythingPerfect(
       duration: 800,       // Suave y rápido
       essential: true      // No cancelable
     });
-    
+
     console.log(`🎯 Mapa centrado en usuario con zoom ${perfectZoom}`);
   }
 
-// 🔧 MÉTODO AUXILIAR: Calcular distancia
-/*private calculateDistance(point1: [number, number], point2: [number, number]): number {
-  const [lon1, lat1] = point1;
-  const [lon2, lat2] = point2;
-  
-  const R = 6371; // Radio de la Tierra en km
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  
-  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-            Math.sin(dLon/2) * Math.sin(dLon/2);
-            
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return R * c;
-}
-  /**
-   * 📍 Centrar mapa en usuario (botón adicional)
-   */
- /* centerOnUser() {
-    if (!this.map) return;
+  // 🔧 MÉTODO AUXILIAR: Calcular distancia
+  /*private calculateDistance(point1: [number, number], point2: [number, number]): number {
+    const [lon1, lat1] = point1;
+    const [lon2, lat2] = point2;
     
-    const userCoords = this.userLocation();
-    this.map.flyTo({
-      center: userCoords,
-      zoom: 15,
-      duration: 1500
-    });
+    const R = 6371; // Radio de la Tierra en km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
     
-    console.log('📍 Mapa centrado en usuario');
-  }*/
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+              
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  }
+    /**
+     * 📍 Centrar mapa en usuario (botón adicional)
+     */
+  /* centerOnUser() {
+     if (!this.map) return;
+     
+     const userCoords = this.userLocation();
+     this.map.flyTo({
+       center: userCoords,
+       zoom: 15,
+       duration: 1500
+     });
+     
+     console.log('📍 Mapa centrado en usuario');
+   }*/
 
   /**
    * 🛰️ Centrar en el pase (botón adicional) 
@@ -372,24 +420,24 @@ private fitMapToShowEverythingPerfect(
   /**
    * 🏙️ Coordenadas reales de Barcelona
    */
- /* private getLandmarkCoordinates(landmark: string): [number, number] {
-    const coordinates: Record<string, [number, number]> = {
-      'Tibidabo': [2.120, 41.422],
-      'Collserola': [2.100, 41.420],
-      'Sagrada Família': [2.174, 41.404],
-      'Sant Adrià': [2.220, 41.430],
-      'Barceloneta': [2.189, 41.379],
-      'Montjuïc': [2.166, 41.363],
-      'Hospital Clínic': [2.153, 41.390],
-      'Zona Universitària': [2.114, 41.387],
-      'Park Güell': [2.153, 41.414],
-      'Port Vell': [2.182, 41.377],
-      'Diagonal': [2.158, 41.397],
-      'Eixample': [2.165, 41.395]
-    };
-
-    return coordinates[landmark] || [2.169, 41.387]; // Centro Barcelona
-  }*/
+  /* private getLandmarkCoordinates(landmark: string): [number, number] {
+     const coordinates: Record<string, [number, number]> = {
+       'Tibidabo': [2.120, 41.422],
+       'Collserola': [2.100, 41.420],
+       'Sagrada Família': [2.174, 41.404],
+       'Sant Adrià': [2.220, 41.430],
+       'Barceloneta': [2.189, 41.379],
+       'Montjuïc': [2.166, 41.363],
+       'Hospital Clínic': [2.153, 41.390],
+       'Zona Universitària': [2.114, 41.387],
+       'Park Güell': [2.153, 41.414],
+       'Port Vell': [2.182, 41.377],
+       'Diagonal': [2.158, 41.397],
+       'Eixample': [2.165, 41.395]
+     };
+ 
+     return coordinates[landmark] || [2.169, 41.387]; // Centro Barcelona
+   }*/
 
   ngOnDestroy(): void {
     // Cleanup si es necesario
