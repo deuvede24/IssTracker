@@ -34,12 +34,16 @@ export class MapComponent implements OnInit {
 
   userLocation = computed<[number, number]>(() => {
     const location = this.locationService.location();
-    if (location && location.detected) {
+    // if (location && location.detected) {
+    console.log('🔍 MAP userLocation computed:', location);
+    if (location) {
       console.log(`📍 Usando ubicación GPS real: ${location.city}`);
       console.log(`📍 Coordenadas exactas: ${location.latitude}, ${location.longitude}`);
+      console.log('✅ Using real location:', location.city, location.latitude, location.longitude);
       return [location.longitude, location.latitude];
     }
     console.log('📍 Usando ubicación por defecto: Barcelona');
+    console.log('❌ No location, using Barcelona fallback');
     return [2.1689, 41.3879]; // Fallback Barcelona
   });
 
