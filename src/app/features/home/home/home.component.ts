@@ -27,7 +27,13 @@ export class HomeComponent implements OnInit, OnDestroy {
   realISSPosition = this.issService.position;
   notificationsEnabled = computed(() => this.notificationService.isEnabled);
 
-  visiblePasses = this.passesService.passes;
+  //visiblePasses = this.passesService.passes;
+  visiblePasses = computed(() => {
+    if (!this.hasValidLocation()) {
+      return []; // No mostrar pases sin ubicación válida
+    }
+    return this.passesService.passes();
+  });
   loadedOnce = signal(false);
 
   usingCache = computed(() => {
@@ -39,25 +45,30 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.loadedOnce() && this.visiblePasses().length === 0
   );
 
+  hasValidLocation = computed(() => {
+    const loc = this.locationService.location();
+    const isValid = loc && loc.latitude !== 0 && loc.longitude !== 0;
+
+    // Disable tabs when no valid location
+    if (isValid) {
+      document.body.classList.remove('location-required');
+    } else {
+      document.body.classList.add('location-required');
+    }
+
+    return isValid;
+  });
   retry = () => this.refreshData();
 
   currentDistance = computed(() => {
     const userLoc = this.locationService.location();
-    if (!userLoc) return 420;
-
+    // if (!userLoc) return 420;
+    if (!userLoc || (userLoc.latitude === 0 && userLoc.longitude === 0)) {
+      return null;
+    }
     return Math.round(this.issService.calculateDistanceFromUser(userLoc.latitude, userLoc.longitude));
   });
 
-  /*locationBadge = computed(() => {
-    const location = this.locationService.location();
-    if (!location) return '📍 Getting location...';
-
-    if (location.detected) {
-      return `📍 ${location.city}`;
-    } else {
-      return `📍 ${location.city} (Default)`;
-    }
-  });*/
   // home.component.ts
   locationBadge = computed(() => {
     const loc = this.locationService.location();
@@ -68,6 +79,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   distanceDescription = computed(() => {
     const distance = this.currentDistance();
+    if (distance === null) return "Enable location to see distance";
     if (distance < 500) return "Very close, perfect for viewing!";
     if (distance < 800) return "Good distance for observation";
     return "A bit far!";
@@ -104,7 +116,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   // ===== CON LAZY LOADING =====
   async ngOnInit(): Promise<void> {
     try {
-      console.log('🏠 Iniciando Home con Satellite.js + Lazy Loading...');
+      console.log('🏠 Starting Home with Satellite.js + Lazy Loading...');
       console.log('🔍 passesService:', this.passesService);
 
       // 1. Obtener ubicación del usuario
@@ -240,4 +252,66 @@ export class HomeComponent implements OnInit, OnDestroy {
     console.log('🌙 Checking pass time:', passTime, 'Hour:', hour); // Debug
     return hour >= 19 || hour <= 5; // 7PM - 5AM
   }
+
+  isRetrying = signal(false);
+
+  /*async retryLocation() {
+    if (this.isRetrying()) return; // Si ya está ejecutándose, salir inmediatamente
+    
+    this.isRetrying.set(true);
+    try {
+      console.log('🔄 Retrying location...');
+      await this.locationService.getUserLocation();
+           
+      const userLocation = this.locationService.location();
+      if (userLocation && userLocation.latitude !== 0 && userLocation.longitude !== 0) {
+        console.log('✅ Location obtained, loading passes...');
+        await this.passesService.getRealPasses(userLocation.latitude, userLocation.longitude);
+      }
+    } catch (error) {
+      console.warn('⚠️ Location retry error:', error);
+    } finally {
+      this.isRetrying.set(false);
+    }
+  }*/
+  async retryLocation() {
+    if (this.isRetrying()) return;
+
+    this.isRetrying.set(true);
+    try {
+      console.log('🔄 Retrying with approximate location...');
+
+      // Directo a IP - sin GPS
+      const response = await fetch('https://ipapi.co/json/');
+      const data = await response.json();
+
+      const location = {
+        latitude: data.latitude,
+        longitude: data.longitude,
+        city: data.city || data.region || 'Unknown location',
+        detected: false,
+        accuracy: 50000,
+        source: 'IP-retry'
+      };
+
+      this.locationService.setLocation(location);
+      await this.passesService.getRealPasses(location.latitude, location.longitude);
+
+      // Solucionar el "0 km" inicial
+      await this.issService.getCurrentPosition();
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+    } catch (error) {
+      console.warn('⚠️ IP retry failed, checking cache...');
+      const cached = localStorage.getItem('last-location');
+      if (cached) {
+        const loc = JSON.parse(cached);
+        this.locationService.setLocation({ ...loc, source: 'Cached' });
+      }
+    } finally {
+      this.isRetrying.set(false);
+    }
+  }
+
+
 }

@@ -1,3 +1,18 @@
+@if (!hasValidLocation()) {
+<div class="location-overlay-home">
+  <div class="location-modal">
+    <i class="bi-geo "></i>
+    <h3>Location needed for ISS passes</h3>
+    <p>We need your location to calculate when ISS passes overhead.</p>
+    <button class="retry-btn" (click)="retryLocation()" [disabled]="isRetrying()">
+      <i class="bi bi-arrow-clockwise" [class.spinning]="isRetrying()"></i>
+      {{ isRetrying() ? 'Getting location...' : 'Try approximate location' }}
+    </button>
+    <small>We'll use internet-based location</small>
+  </div>
+</div>
+}
+
 <!-- INICIO - LA APP MAS SIMPLE DEL MUNDO -->
 <div class="simple-home">
 
@@ -30,21 +45,14 @@
       <div class="distance-icon">📍</div>
       <div class="distance-info">
         <h3>ISS right now</h3>
-        <div class="distance-big">{{ currentDistance() }} km</div>
-        <p>{{ distanceDescription() }}</p>
-        <!---   <div class="iss-direction-visual">
-        <span class="iss-satellite">🛰️</span>
-        
-        <div class="direction-info">
-          <div class="direction-line"></div>
-          <div class="direction-text">
-            {{ directionIcon() }} {{ issDirection().cardinal }}
-          </div>
-          <div class="movement-status">{{ issMovement() }}</div>
+        <div class="distance-big">
+          @if (currentDistance() !== null) {
+          {{ currentDistance() }} km
+          } @else {
+          ---
+          }
         </div>
-        
-        <span class="you-location">📍 You</span>
-      </div>-->
+        <p>{{ distanceDescription() }}</p>
         <button class="view-details-btn" (click)="showISSNow()">
           View details
         </button>
@@ -53,12 +61,12 @@
   </div>
 
   <!-- PRÓXIMOS PASES (clickeables) -->
+  @if (hasValidLocation()) {
   <div class="next-passes-simple">
     <h2>🗓️ When you'll see it</h2>
 
     <!-- 👇 Aviso sutil si lo que ves viene de caché -->
     @if (usingCache() && visiblePasses().length > 0) {
-
     <div class="status-note" aria-live="polite">
       Showing last known passes (cached)
     </div>
@@ -75,7 +83,6 @@
     @for (pass of visiblePasses(); track pass.id; let i = $index) {
     <div class="pass-card-simple" [class.night-pass]="isNightTime(pass.time)" [class.day-pass]="!isNightTime(pass.time)"
       (click)="goToMapWithPass(pass)" [class.next-pass]="i === 0">
-
       @if (i === 0) {
       <div class="next-badge">NEXT</div>
       }
@@ -110,6 +117,7 @@
     </div>
     }
   </div>
+  }
 
   <!-- BOTÓN GRANDE para ir al mapa -->
   <div class="map-cta">
