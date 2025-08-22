@@ -8,7 +8,6 @@ import type { Feature, LineString, GeoJsonProperties } from 'geojson';
 import { environment } from '../../../environments/environment';
 import { Router, ActivatedRoute } from '@angular/router';
 import { PassMap } from '../../interfaces/pass.interface';
-//import { N2YOPassesService } from '../../services/n2yo-passes.service'; // ← SOLO N2YO
 import { ISSPassesService } from '../../services/iss-passes.service';
 import { LocationSimpleService } from '../../services/location-simple.service';
 import { LocalReferenceService } from '../../services/local-reference.service';
@@ -23,8 +22,6 @@ import { LocalReferenceService } from '../../services/local-reference.service';
 })
 export class MapComponent implements OnInit {
 
-  // ===== SOLO N2YO =====
-  //private n2yoService = inject(N2YOPassesService);
   private passesService = inject(ISSPassesService);
   private locationService = inject(LocationSimpleService);
   private localReference = inject(LocalReferenceService);
@@ -46,6 +43,7 @@ export class MapComponent implements OnInit {
     console.log('❌ No location, using Barcelona fallback');
     return [0, 0]; // Fallback Barcelona
   });
+
 
   mapCenter = computed<[number, number]>(() => this.userLocation());
 
@@ -99,7 +97,7 @@ export class MapComponent implements OnInit {
     // 🚀 ASEGURAR UBICACIÓN REAL ANTES DE TODO
     try {
       console.log('📍 Verificando ubicación real para mapa...');
-      await this.locationService.getUserLocation();
+    //  await this.locationService.getUserLocation();
 
       const userLoc = this.locationService.location();
       console.log('🗺️ Ubicación para mapa:', userLoc);
@@ -116,7 +114,7 @@ export class MapComponent implements OnInit {
       const userLoc = this.locationService.location();
       if (userLoc) {
         console.log('🔍 Cargando pases INMEDIATAMENTE para mapa...');
-        await this.passesService.getRealPasses(userLoc.latitude, userLoc.longitude);
+       // await this.passesService.getRealPasses(userLoc.latitude, userLoc.longitude);
       }
 
       const availablePasses = this.allPasses();
@@ -161,103 +159,6 @@ export class MapComponent implements OnInit {
 
   initialZoom = signal<number>(12);
 
-  // ===== COORDENADAS DINÁMICAS =====
-  /* updateMapForPass(pass: PassMap) {
-     console.log(`🛰️ Actualizando mapa para pase: ${pass.id}`);
-     console.log(`📍 From: ${pass.from}, To: ${pass.to}`);
- 
-     // Calcular coordenadas dinámicamente
-     const startCoords = this.getLandmarkCoordinates(pass.from);
-     const endCoords = this.getLandmarkCoordinates(pass.to);
-     const userCoords = this.userLocation();
- 
-     console.log(`🎯 Coordenadas calculadas:`, { user: userCoords, start: startCoords, end: endCoords });
- 
-     this.issStartPoint.set(startCoords);
-     this.issEndPoint.set(endCoords);
- 
-     // Actualizar trajectory
-     this.trajectoryData.set({
-       type: 'Feature',
-       properties: {},
-       geometry: {
-         type: 'LineString',
-         coordinates: [startCoords, endCoords]
-       }
-     });
- 
-     if (this.map) {
-       this.fitMapToShowEverything(userCoords, startCoords, endCoords);
-     }
- 
-     if (this.movingISSMarker) {
-     const [lng, lat] = startCoords;
-     this.movingISSMarker.setLngLat([lng, lat]);
-     console.log('🛰️ Satélite reposicionado al nuevo punto de inicio');
-   }
-   
- 
-     console.log(`✅ Trayectoria actualizada para pase ${pass.id}`);
-   }*/
-
-  /* updateMapForPass(pass: PassMap) {
-    console.log(`🛰️ Actualizando mapa para pase: ${pass.id}`);
-    console.log(`📍 From: ${pass.from}, To: ${pass.to}`);
-
-    const userCoords = this.userLocation();
-    
-    // ✅ BUSCAR EL PASE COMPLETO con datos de azimuth
-    const allPasses = this.passesService.passes();
-    const fullPass = allPasses.find(p => p.id === pass.id);
-    
-    if (!fullPass || !fullPass.azimuth) {
-      console.error('❌ No se encontró pase completo con azimuth data');
-      return;
-    }
-
-    // ✅ USAR MATEMÁTICAS para calcular coordenadas
-    const localRef = this.localReference.generateLocalReferences(
-      userCoords[1], // lat
-      userCoords[0], // lon  
-      fullPass.azimuth.appear,
-      fullPass.azimuth.disappear,
-      50 // Elevación por defecto
-    );
-
-    const startCoords: [number, number] = localRef.startCoords;
-    const endCoords: [number, number] = localRef.endCoords;
-
-    console.log(`🎯 Coordenadas calculadas matemáticamente:`, { 
-      user: userCoords, 
-      start: startCoords, 
-      end: endCoords 
-    });
-
-    this.issStartPoint.set(startCoords);
-    this.issEndPoint.set(endCoords);
-
-    // Actualizar trajectory
-    this.trajectoryData.set({
-      type: 'Feature',
-      properties: {},
-      geometry: {
-        type: 'LineString',
-        coordinates: [startCoords, endCoords]
-      }
-    });
-
-    if (this.map) {
-      this.fitMapToShowEverythingPerfect(userCoords, startCoords, endCoords);
-    }
-
-    if (this.movingISSMarker) {
-      const [lng, lat] = startCoords;
-      this.movingISSMarker.setLngLat([lng, lat]);
-      console.log('🛰️ Satélite reposicionado al nuevo punto de inicio matemático');
-    }
-
-    console.log(`✅ Trayectoria actualizada matemáticamente para pase ${pass.id}`);
-  } */
 
   updateMapForPass(pass: PassMap) {
     console.log(`🛰️ Actualizando mapa para pase: ${pass.id}`);
@@ -266,7 +167,11 @@ export class MapComponent implements OnInit {
     const u = this.locationService.location();
     if (!u) {
       console.warn('[map] No hay user location aún; esperando...');
-      return; // tu setup/retry ya volverá a llamar
+      return;
+    }
+    if (u.latitude === 0 && u.longitude === 0) {
+      console.warn('[map] Ubicación inválida (0,0); abortando dibujo.');
+      return;
     }
     const userLonLat: [number, number] = [u.longitude, u.latitude];
 
@@ -307,42 +212,6 @@ export class MapComponent implements OnInit {
   }
 
 
-  /*private fitMapToShowEverything(
-    userCoords: [number, number], 
-    startCoords: [number, number], 
-    endCoords: [number, number]
-  ) {
-    if (!this.map) return;
-  
-    // 🎯 SIEMPRE centrar en el USUARIO como referencia
-    const userLat = userCoords[1];
-    const userLon = userCoords[0];
-    
-    // Calcular distancia máxima desde usuario a puntos ISS
-    const distanceToStart = this.calculateDistance(userCoords, startCoords);
-    const distanceToEnd = this.calculateDistance(userCoords, endCoords);
-    const maxDistance = Math.max(distanceToStart, distanceToEnd);
-    
-    const isMobile = window.innerWidth <= 768;
-    
-    // 🎯 Zoom inteligente basado en distancia desde usuario
-    let zoom = 12;
-    if (maxDistance < 3) zoom = isMobile ? 14 : 13;        // Muy cerca
-    else if (maxDistance < 8) zoom = isMobile ? 13 : 12;   // Cerca  
-    else if (maxDistance < 15) zoom = isMobile ? 12 : 11;  // Normal
-    else zoom = isMobile ? 11 : 10;                        // Lejos
-    
-    // 🎯 CENTRAR EN USUARIO, no en bounds automáticos
-    this.map.flyTo({
-      center: userCoords,  // Usuario SIEMPRE en el centro
-      zoom,
-      duration: 800,       // Suave y rápido
-      essential: true      // No cancelable
-    });
-    
-    console.log(`🎯 Zoom ${zoom} centrado en USUARIO (distancia max: ${maxDistance.toFixed(1)}km)`);
-  }*/
-
   private fitMapToShowEverythingPerfect(
     userCoords: [number, number],
     startCoords: [number, number],
@@ -366,82 +235,6 @@ export class MapComponent implements OnInit {
 
     console.log(`🎯 Mapa centrado en usuario con zoom ${perfectZoom}`);
   }
-
-  // 🔧 MÉTODO AUXILIAR: Calcular distancia
-  /*private calculateDistance(point1: [number, number], point2: [number, number]): number {
-    const [lon1, lat1] = point1;
-    const [lon2, lat2] = point2;
-    
-    const R = 6371; // Radio de la Tierra en km
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-              Math.sin(dLon/2) * Math.sin(dLon/2);
-              
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
-  }
-    /**
-     * 📍 Centrar mapa en usuario (botón adicional)
-     */
-  /* centerOnUser() {
-     if (!this.map) return;
-     
-     const userCoords = this.userLocation();
-     this.map.flyTo({
-       center: userCoords,
-       zoom: 15,
-       duration: 1500
-     });
-     
-     console.log('📍 Mapa centrado en usuario');
-   }*/
-
-  /**
-   * 🛰️ Centrar en el pase (botón adicional) 
-   */
-  /*centerOnPass() {
-    if (!this.map) return;
-    
-    const startCoords = this.issStartPoint();
-    const endCoords = this.issEndPoint();
-    
-    // Centro entre start y end
-    const centerLng = (startCoords[0] + endCoords[0]) / 2;
-    const centerLat = (startCoords[1] + endCoords[1]) / 2;
-    
-    this.map.flyTo({
-      center: [centerLng, centerLat],
-      zoom: 13,
-      duration: 1500
-    });
-    
-    console.log('🛰️ Mapa centrado en pase ISS');
-  }*/
-
-  /**
-   * 🏙️ Coordenadas reales de Barcelona
-   */
-  /* private getLandmarkCoordinates(landmark: string): [number, number] {
-     const coordinates: Record<string, [number, number]> = {
-       'Tibidabo': [2.120, 41.422],
-       'Collserola': [2.100, 41.420],
-       'Sagrada Família': [2.174, 41.404],
-       'Sant Adrià': [2.220, 41.430],
-       'Barceloneta': [2.189, 41.379],
-       'Montjuïc': [2.166, 41.363],
-       'Hospital Clínic': [2.153, 41.390],
-       'Zona Universitària': [2.114, 41.387],
-       'Park Güell': [2.153, 41.414],
-       'Port Vell': [2.182, 41.377],
-       'Diagonal': [2.158, 41.397],
-       'Eixample': [2.165, 41.395]
-     };
- 
-     return coordinates[landmark] || [2.169, 41.387]; // Centro Barcelona
-   }*/
 
   ngOnDestroy(): void {
     // Cleanup si es necesario

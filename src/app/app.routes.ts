@@ -1,5 +1,6 @@
 // src/app/app.routes.ts
 import { Routes } from '@angular/router';
+import { requireLocationGuard } from './guards/require-location.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -10,16 +11,19 @@ export const routes: Routes = [
   },
   {
     path: 'map',
+    canActivate: [requireLocationGuard],
     loadComponent: () =>
       import('./features/map/map.component').then(m => m.MapComponent)
   },
   {
     path: 'iss',
+    canActivate: [requireLocationGuard],
     loadComponent: () =>
       import('./features/iss/iss.component').then(m => m.IssComponent)
   },
   {
     path: 'alerts',
+    canActivate: [requireLocationGuard],
     loadComponent: () =>
       import('./features/alerts/alerts/alerts.component').then(m => m.AlertsComponent)
   },
@@ -27,4 +31,3 @@ export const routes: Routes = [
 ];
 
 export class AppRoutingModule { }
-
