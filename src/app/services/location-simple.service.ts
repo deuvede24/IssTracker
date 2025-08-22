@@ -190,4 +190,8 @@ export class LocationSimpleService {
     console.log('🔄 Forzando actualización de ubicación...');
     return this.getUserLocation();
   }
+  setLocation(location: UserLocationSimple): void {
+  this.currentLocation.set(location);
+  localStorage.setItem('last-location', JSON.stringify(location));
+}
 }
