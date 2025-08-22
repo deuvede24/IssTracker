@@ -25,14 +25,19 @@ export class ISSPassesService {
    * 🛰️ Obtener pases reales usando satellite.js - CON UI INTELIGENTE
    */
   async getRealPasses(latitude: number, longitude: number): Promise<PassHome[]> {
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude) ||
+      (latitude === 0 && longitude === 0)) {
+      console.warn('[passes] Invalid location; keeping current cache');
+      return this.realPasses();
+    }
     try {
-      console.log('🛰️ Calculando pases REALES con satellite.js para:', { latitude, longitude });
+      console.log('🛰️ Calculating REAL passes with satellite.js for:', { latitude, longitude });
 
       // Evitar cálculos duplicados
       if (this.lastFetchLocation &&
         Math.abs(this.lastFetchLocation.lat - latitude) < 0.01 &&
         Math.abs(this.lastFetchLocation.lon - longitude) < 0.01) {
-        console.log('📋 Usando pases cacheados');
+        console.log('📋 Using cached passes');
         return this.realPasses();
       }
 
@@ -44,10 +49,10 @@ export class ISSPassesService {
         5  // mínimo 5° elevación
       );
 
-      console.log('🔢 Cálculos satellite.js REALES:', calculations.length);
+      console.log('🔢 REAL satellite.js calculations:', calculations.length);
 
       if (calculations.length === 0) {
-        console.log('⚠️ No se encontraron pases, usando fallback');
+        console.log('⚠️ No passes found, using fallback');
         const fallbackPasses = this.generateRealisticFallback();
         this.realPasses.set(fallbackPasses);
         return fallbackPasses;
@@ -62,8 +67,8 @@ export class ISSPassesService {
       const nightPasses = allPasses.filter(pass => this.isNightPass(pass.time));
       const dayPasses = allPasses.filter(pass => !this.isNightPass(pass.time));
 
-      console.log(`🌙 Pases nocturnos REALES: ${nightPasses.length}`);
-      console.log(`☀️ Pases diurnos REALES: ${dayPasses.length}`);
+      console.log(`🌙 REAL night passes: ${nightPasses.length}`);
+      console.log(`☀️ REAL day passes:  ${dayPasses.length}`);
 
       let finalPasses: PassHome[];
 
@@ -74,7 +79,7 @@ export class ISSPassesService {
           viewable: true,
           reason: 'Perfect night viewing'
         }));
-        console.log('🌙 Usando 3 pases nocturnos REALES');
+        console.log('🌙 Using 3 REAL night passes');
 
       } else if (nightPasses.length > 0) {
         // ⚠️ Pocos nocturnos - combinar con mejores diurnos
@@ -94,7 +99,7 @@ export class ISSPassesService {
             reason: 'Daylight pass - not visible'
           }))
         ];
-        console.log(`🌓 Combinando ${nightPasses.length} nocturnos + ${brightDayPasses.length} diurnos`);
+        console.log(`🌓 Combining ${nightPasses.length} night + ${brightDayPasses.length} day`);
 
       } else {
         // ❌ No hay nocturnos esta semana - mostrar los mejores diurnos + info
@@ -103,7 +108,7 @@ export class ISSPassesService {
           viewable: false,
           reason: 'Daylight pass - not visible'
         }));
-        console.log('☀️ Solo pases diurnos esta semana');
+        console.log('☀️ Only day passes this week');
       }
       // 🎯 ORDENAR CRONOLÓGICAMENTE
       finalPasses = finalPasses.sort((a, b) =>
@@ -119,11 +124,11 @@ export class ISSPassesService {
       this.realPasses.set(finalPasses);
       this.lastFetchLocation = { lat: latitude, lon: longitude };
 
-      console.log('✅ Pases REALES calculados con satellite.js:', finalPasses.length);
+      console.log('✅ REAL passes calculated with satellite.js:', finalPasses.length);
       return finalPasses;
 
     } catch (error) {
-      console.error('❌ Error calculando pases REALES:', error);
+      console.error('❌ Error calculating REAL passes:', error);
 
       // Fallback solo si satellite.js falla completamente
       const fallbackPasses = this.generateRealisticFallback();
