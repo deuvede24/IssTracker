@@ -43,3 +43,8 @@ bottom-nav {
   min-height: -webkit-fill-available;
   /* Fallback */
 }
+
+body.location-required .bottom-nav .nav-item:not([href*="/home"]) {
+  opacity: 0.4;
+  pointer-events: none;
+}
