@@ -44,7 +44,7 @@ export class MapComponent implements OnInit {
     }
     console.log('📍 Usando ubicación por defecto: Barcelona');
     console.log('❌ No location, using Barcelona fallback');
-    return [2.1689, 41.3879]; // Fallback Barcelona
+    return [0, 0]; // Fallback Barcelona
   });
 
   mapCenter = computed<[number, number]>(() => this.userLocation());

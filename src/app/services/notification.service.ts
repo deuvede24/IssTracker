@@ -206,6 +206,16 @@ export class NotificationService {
 
     // 🔔 MOSTRAR NOTIFICACIONES
     private showNotification(pass: PassHome, type: NotificationType): void {
+        //check notifications
+        // Verificación temporal antes de mostrar
+        const now = Date.now();
+        const timeDiff = Math.abs(pass.time.getTime() - now);
+
+        // Cancelar si el timing está muy desviado
+        if (type === 'now' && timeDiff > 10 * 60 * 1000) { // 10 min range
+            console.log('Notificación cancelada - timing incorrecto:', timeDiff / 60000, 'min');
+            return;
+        }
         if (!this.isEnabled || Notification.permission !== 'granted') {
             return;
         }

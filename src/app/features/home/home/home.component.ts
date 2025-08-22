@@ -211,6 +211,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   async refreshData() {
     console.log('🔄 Refrescando datos...');
+    this.notificationService.clearAllNotifications();
 
     try {
       await this.issService.getCurrentPosition();
