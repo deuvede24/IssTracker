@@ -3,9 +3,14 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { LocationSimpleService } from '../services/location-simple.service';
 
-export const requireLocationGuard: CanActivateFn = () => {
+export const requireLocationGuard: CanActivateFn = (route, state) => {
   const locationService = inject(LocationSimpleService);
   const router = inject(Router);
+
+   if (state.url.includes('/iss') && state.root.queryParams['showISSNow'] === 'true') {
+    console.log('🌍 Permitiendo ISS Global View sin ubicación');
+    return true;
+  }
   
   const location = locationService.location();
   const hasValidLocation = location && location.latitude !== 0 && location.longitude !== 0;
