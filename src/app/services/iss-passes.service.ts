@@ -3,7 +3,6 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { PassHome } from '../interfaces/pass.interface';
 import { SatelliteCalculatorService, PassCalculation } from './satellite-calculator.service';
-import { bearingToCardinal } from '../utils/geodesy';
 import { LocalReferenceService } from './local-reference.service';
 
 
@@ -15,6 +14,8 @@ export class ISSPassesService {
   private satelliteCalculator = inject(SatelliteCalculatorService);
   private realPasses = signal<PassHome[]>([]);
   private lastFetchLocation: { lat: number; lon: number } | null = null;
+  private lastFetchAt: number | null = null;
+
   private localReference = inject(LocalReferenceService);
 
   get passes() {
@@ -24,29 +25,151 @@ export class ISSPassesService {
   /**
    * 🛰️ Obtener pases reales usando satellite.js - CON UI INTELIGENTE
    */
+  /* async getRealPasses(latitude: number, longitude: number): Promise<PassHome[]> {
+     if (!Number.isFinite(latitude) || !Number.isFinite(longitude) ||
+       (latitude === 0 && longitude === 0)) {
+       console.warn('[passes] Invalid location; keeping current cache');
+       return this.realPasses();
+     }
+     try {
+       console.log('🛰️ Calculating REAL passes with satellite.js for:', { latitude, longitude });
+ 
+       // Evitar cálculos duplicados
+       if (this.lastFetchLocation &&
+         Math.abs(this.lastFetchLocation.lat - latitude) < 0.01 &&
+         Math.abs(this.lastFetchLocation.lon - longitude) < 0.01) {
+         console.log('📋 Using cached passes');
+         return this.realPasses();
+       }
+ 
+       // Calcular pases con satellite.js
+       const calculations = await this.satelliteCalculator.calculatePasses(
+         latitude,
+         longitude,
+         14, // 14 días
+         5  // mínimo 5° elevación
+       );
+ 
+       console.log('🔢 REAL satellite.js calculations:', calculations.length);
+ 
+       if (calculations.length === 0) {
+         console.log('⚠️ No passes found, using fallback');
+         const fallbackPasses = this.generateRealisticFallback();
+         this.realPasses.set(fallbackPasses);
+         return fallbackPasses;
+       }
+ 
+       // Transformar TODOS los pases a formato PassHome
+       const allPasses = calculations.map((calc, index) =>
+         this.transformToPassHome(calc, index, latitude, longitude)
+       );
+ 
+       // 🎯 LÓGICA INTELIGENTE: Separar nocturnos vs diurnos
+       const nightPasses = allPasses.filter(pass => this.isNightPass(pass.time));
+       const dayPasses = allPasses.filter(pass => !this.isNightPass(pass.time));
+ 
+       console.log(`🌙 REAL night passes: ${nightPasses.length}`);
+       console.log(`☀️ REAL day passes:  ${dayPasses.length}`);
+ 
+       let finalPasses: PassHome[];
+ 
+       if (nightPasses.length >= 3) {
+         // ✅ Hay suficientes pases nocturnos - PERFECTO
+         finalPasses = nightPasses.slice(0, Math.min(3, nightPasses.length)).map(pass => ({
+           ...pass,
+           viewable: true,
+           reason: 'Perfect night viewing'
+         }));
+         console.log('🌙 Using 3 REAL night passes');
+ 
+       } else if (nightPasses.length > 0) {
+         // ⚠️ Pocos nocturnos - combinar con mejores diurnos
+         const brightDayPasses = dayPasses
+           .filter(pass => this.isBrightDayPass(pass))
+           .slice(0, 3 - nightPasses.length);
+ 
+         finalPasses = [
+           ...nightPasses.map(pass => ({
+             ...pass,
+             viewable: true,
+             reason: 'Perfect night viewing'
+           })),
+           ...brightDayPasses.map(pass => ({
+             ...pass,
+             viewable: false,
+             reason: 'Daylight pass - not visible'
+           }))
+         ];
+         console.log(`🌓 Combining ${nightPasses.length} night + ${brightDayPasses.length} day`);
+ 
+       } else {
+         // ❌ No hay nocturnos esta semana - mostrar los mejores diurnos + info
+         finalPasses = dayPasses.slice(0, 3).map(pass => ({
+           ...pass,
+           viewable: false,
+           reason: 'Daylight pass - not visible'
+         }));
+         console.log('☀️ Only day passes this week');
+       }
+       // 🎯 ORDENAR CRONOLÓGICAMENTE
+       finalPasses = finalPasses.sort((a, b) =>
+         new Date(a.time).getTime() - new Date(b.time).getTime()
+       );
+ 
+       try {
+         localStorage.setItem('last-valid-passes', JSON.stringify(finalPasses.slice(0, 3)));
+       } catch (e) {
+         console.warn('[passes] Could not persist cache:', e);
+       }
+ 
+       this.realPasses.set(finalPasses);
+       this.lastFetchLocation = { lat: latitude, lon: longitude };
+ 
+       console.log('✅ REAL passes calculated with satellite.js:', finalPasses.length);
+       return finalPasses;
+ 
+     } catch (error) {
+       console.error('❌ Error calculating REAL passes:', error);
+ 
+       // Fallback solo si satellite.js falla completamente
+       const fallbackPasses = this.generateRealisticFallback();
+       this.realPasses.set(fallbackPasses);
+       return fallbackPasses;
+     }
+   }*/
+
+  /**
+   * 🛰️ Obtener pases reales usando satellite.js
+   * - Evita recálculos si estamos en la misma zona y los datos son "frescos" (<2h) 🆕
+   * - Guarda una copia ligera en localStorage (para fallback visual) ✅
+   */
   async getRealPasses(latitude: number, longitude: number): Promise<PassHome[]> {
+    // Validación de entrada
     if (!Number.isFinite(latitude) || !Number.isFinite(longitude) ||
       (latitude === 0 && longitude === 0)) {
       console.warn('[passes] Invalid location; keeping current cache');
       return this.realPasses();
     }
+
+    // 🆕 Evitar cálculos duplicados: misma zona + datos frescos (< 2h)
+    const FRESH_WINDOW_MS = 2 * 60 * 60 * 1000; // 2 horas
+    if (this.lastFetchLocation &&
+      Math.abs(this.lastFetchLocation.lat - latitude) < 0.01 &&
+      Math.abs(this.lastFetchLocation.lon - longitude) < 0.01 &&
+      this.lastFetchAt && (Date.now() - this.lastFetchAt) < FRESH_WINDOW_MS) {
+      console.log('📋 Using cached in-memory passes (same area, fresh)');
+      return this.realPasses();
+    }
+
     try {
       console.log('🛰️ Calculating REAL passes with satellite.js for:', { latitude, longitude });
-
-      // Evitar cálculos duplicados
-      if (this.lastFetchLocation &&
-        Math.abs(this.lastFetchLocation.lat - latitude) < 0.01 &&
-        Math.abs(this.lastFetchLocation.lon - longitude) < 0.01) {
-        console.log('📋 Using cached passes');
-        return this.realPasses();
-      }
 
       // Calcular pases con satellite.js
       const calculations = await this.satelliteCalculator.calculatePasses(
         latitude,
         longitude,
         14, // 14 días
-        5  // mínimo 5° elevación
+        5   // mínimo 5° elevación
       );
 
       console.log('🔢 REAL satellite.js calculations:', calculations.length);
@@ -54,6 +177,8 @@ export class ISSPassesService {
       if (calculations.length === 0) {
         console.log('⚠️ No passes found, using fallback');
         const fallbackPasses = this.generateRealisticFallback();
+
+        // ⛔ No marcar como fresco en fallback: queremos reintentar pronto
         this.realPasses.set(fallbackPasses);
         return fallbackPasses;
       }
@@ -63,7 +188,7 @@ export class ISSPassesService {
         this.transformToPassHome(calc, index, latitude, longitude)
       );
 
-      // 🎯 LÓGICA INTELIGENTE: Separar nocturnos vs diurnos
+      // 🎯 Lógica inteligente: separar nocturnos vs diurnos
       const nightPasses = allPasses.filter(pass => this.isNightPass(pass.time));
       const dayPasses = allPasses.filter(pass => !this.isNightPass(pass.time));
 
@@ -73,36 +198,26 @@ export class ISSPassesService {
       let finalPasses: PassHome[];
 
       if (nightPasses.length >= 3) {
-        // ✅ Hay suficientes pases nocturnos - PERFECTO
+        // ✅ Hay suficientes nocturnos
         finalPasses = nightPasses.slice(0, Math.min(3, nightPasses.length)).map(pass => ({
           ...pass,
           viewable: true,
           reason: 'Perfect night viewing'
         }));
         console.log('🌙 Using 3 REAL night passes');
-
       } else if (nightPasses.length > 0) {
-        // ⚠️ Pocos nocturnos - combinar con mejores diurnos
+        // 🌓 Combinar pocos nocturnos + mejores diurnos
         const brightDayPasses = dayPasses
           .filter(pass => this.isBrightDayPass(pass))
           .slice(0, 3 - nightPasses.length);
 
         finalPasses = [
-          ...nightPasses.map(pass => ({
-            ...pass,
-            viewable: true,
-            reason: 'Perfect night viewing'
-          })),
-          ...brightDayPasses.map(pass => ({
-            ...pass,
-            viewable: false,
-            reason: 'Daylight pass - not visible'
-          }))
+          ...nightPasses.map(pass => ({ ...pass, viewable: true, reason: 'Perfect night viewing' })),
+          ...brightDayPasses.map(pass => ({ ...pass, viewable: false, reason: 'Daylight pass - not visible' }))
         ];
         console.log(`🌓 Combining ${nightPasses.length} night + ${brightDayPasses.length} day`);
-
       } else {
-        // ❌ No hay nocturnos esta semana - mostrar los mejores diurnos + info
+        // ☀️ Solo diurnos esta semana
         finalPasses = dayPasses.slice(0, 3).map(pass => ({
           ...pass,
           viewable: false,
@@ -110,19 +225,23 @@ export class ISSPassesService {
         }));
         console.log('☀️ Only day passes this week');
       }
-      // 🎯 ORDENAR CRONOLÓGICAMENTE
+
+      // 🎯 Ordenar cronológicamente
       finalPasses = finalPasses.sort((a, b) =>
         new Date(a.time).getTime() - new Date(b.time).getTime()
       );
 
+      // Persistir caché ligera (3 elementos)
       try {
         localStorage.setItem('last-valid-passes', JSON.stringify(finalPasses.slice(0, 3)));
       } catch (e) {
         console.warn('[passes] Could not persist cache:', e);
       }
 
+      // Actualizar señales y memo de última zona consultada
       this.realPasses.set(finalPasses);
       this.lastFetchLocation = { lat: latitude, lon: longitude };
+      this.lastFetchAt = Date.now(); // 🆕 marcamos fresco solo tras éxito real
 
       console.log('✅ REAL passes calculated with satellite.js:', finalPasses.length);
       return finalPasses;
@@ -132,6 +251,8 @@ export class ISSPassesService {
 
       // Fallback solo si satellite.js falla completamente
       const fallbackPasses = this.generateRealisticFallback();
+
+      // ⛔ No marcar como fresco en fallback
       this.realPasses.set(fallbackPasses);
       return fallbackPasses;
     }
@@ -210,7 +331,7 @@ export class ISSPassesService {
     const isNight = this.isNightPass(calculation.startTime);
     const brightness = isNight
       ? this.getBrightnessDescription(calculation.brightness)  // Solo si es de noche
-      : 'Day pass - not visible';                              // Si es de día
+      : 'Day pass — not visible';                              // Si es de día
 
     // ✅ USAR elevación humana del servicio
     const altitude = localRef.elevationDescription;
@@ -248,36 +369,18 @@ export class ISSPassesService {
    * ☀️ Verificar si es pase diurno brillante
    */
   private isBrightDayPass(pass: PassHome): boolean {
-    const brightness = pass.brightness || '';
-    const altitude = pass.altitude || '';
+    //  const brightness = pass.brightness || '';
+    const altitude = (pass.altitude || '').toLowerCase();
     const duration = pass.duration || 0;
 
-    return brightness.includes('⭐⭐') ||
-      altitude.includes('Very high') ||
-      duration >= 5;
+    return altitude.includes('very high')
+      || altitude.includes('high')      // “High in the sky”
+      || duration >= 5;
   }
 
-  /**
-   * 🏙️ Obtener landmark de Barcelona según azimut
-   */
-  /* private getLandmarkFromAzimuth(azimuth: number): string {
-     const normalizedAzimuth = (azimuth + 360) % 360;
- 
-     if (normalizedAzimuth >= 337.5 || normalizedAzimuth < 22.5) return BARCELONA_LANDMARKS.north;
-     if (normalizedAzimuth >= 22.5 && normalizedAzimuth < 67.5) return BARCELONA_LANDMARKS.northeast;
-     if (normalizedAzimuth >= 67.5 && normalizedAzimuth < 112.5) return BARCELONA_LANDMARKS.east;
-     if (normalizedAzimuth >= 112.5 && normalizedAzimuth < 157.5) return BARCELONA_LANDMARKS.southeast;
-     if (normalizedAzimuth >= 157.5 && normalizedAzimuth < 202.5) return BARCELONA_LANDMARKS.south;
-     if (normalizedAzimuth >= 202.5 && normalizedAzimuth < 247.5) return BARCELONA_LANDMARKS.southwest;
-     if (normalizedAzimuth >= 247.5 && normalizedAzimuth < 292.5) return BARCELONA_LANDMARKS.west;
-     if (normalizedAzimuth >= 292.5 && normalizedAzimuth < 337.5) return BARCELONA_LANDMARKS.northwest;
- 
-     return BARCELONA_LANDMARKS.north; // Fallback
-   }*/
 
-  /**
-   * 🧭 Obtener emoji de brújula según trayectoria
-   */
+
+
   private getCompassEmoji(startAzimuth: number, endAzimuth: number): string {
     const avgAzimuth = ((startAzimuth + endAzimuth) / 2) % 360;
 
@@ -286,16 +389,6 @@ export class ISSPassesService {
     if (avgAzimuth >= 135 && avgAzimuth < 225) return '↑'; // S→N  
     return '↘️'; // W→E
   }
-
-  /**
-   * ⭐ Descripción de brillo según magnitud
-   */
-  /*private getBrightnessDescription(magnitude: number): string {
-    if (magnitude < -3) return 'Extremely bright like Venus ⭐⭐⭐';
-    if (magnitude < -2) return 'Very bright ⭐⭐';
-    if (magnitude < -1) return 'Bright ⭐';
-    return 'Visible ✨';
-  }*/
 
   private getBrightnessDescription(magnitude: number): string {
     let stars = '';
@@ -316,16 +409,6 @@ export class ISSPassesService {
     }
 
     return `${stars} ${description}`;
-  }
-
-  /**
-   * 🏔️ Descripción de altitud según elevación máxima
-   */
-  private getAltitudeDescription(maxElevation: number): string {
-    if (maxElevation > 60) return 'Very high in the sky (overhead)';
-    if (maxElevation > 40) return 'High in the sky';
-    if (maxElevation > 20) return 'Medium altitude';
-    return 'Low on horizon';
   }
 
   /**
@@ -444,6 +527,7 @@ export class ISSPassesService {
    */
   async refreshPasses(latitude: number, longitude: number): Promise<void> {
     this.lastFetchLocation = null; // Forzar recálculo
+    this.lastFetchAt = null; // 🆕 fuerza recálculo real
     await this.getRealPasses(latitude, longitude);
   }
 }
