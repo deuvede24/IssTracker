@@ -248,6 +248,7 @@ export class ISSPassesService {
 
     } catch (error) {
       console.error('❌ Error calculating REAL passes:', error);
+      console.error('❌ Error calculating REAL passes:', error);
 
       // Fallback solo si satellite.js falla completamente
       const fallbackPasses = this.generateRealisticFallback();

@@ -261,4 +261,8 @@ export class LocationSimpleService {
     this.locationStatus.set('loading');
     this.retryCount.set(0);
   }
+  setLocation(location: UserLocationSimple): void {
+  this.currentLocation.set(location);
+  localStorage.setItem('last-location', JSON.stringify(location));
+}
 }
