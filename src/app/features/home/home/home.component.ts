@@ -225,9 +225,17 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   goToMap() { this.router.navigate(['/map']); }
 
-  showISSNow() {
+ /* showISSNow() {
     this.router.navigate(['/iss'], { queryParams: { showISSNow: 'true' } });
+  }*/
+ showISSNow() {
+  if (this.hasValidLocation()) {
+    this.router.navigate(['/iss']);                   // vista completa
+  } else {
+    this.router.navigate(['/iss'], { queryParams: { showISSNow: 'true' } }); // Global View
   }
+}
+
 
   async toggleNotifications(): Promise<void> {
     const enabled = await this.notificationService.toggleNotifications();
