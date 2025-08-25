@@ -18,6 +18,12 @@ export class ISSSimpleService {
   private currentPosition = signal<ISSCurrentPosition | null>(null);
   private isTracking = false;
 
+  // ✅ NUEVO: evita solapadas
+  private inFlight: Promise<ISSCurrentPosition> | null = null;
+
+  // ✅ NUEVO: id del intervalo para limpiarlo al instante
+  private pollId: number | null = null;
+
   // Getter público
   get position() {
     return this.currentPosition.asReadonly();
@@ -73,6 +79,7 @@ export class ISSSimpleService {
 
   async getCurrentPosition(): Promise<ISSCurrentPosition> {
     // 🎯 MÚLTIPLES FUENTES - Probamos hasta que una funcione
+
     const apiSources = [
 
       {
@@ -167,7 +174,7 @@ export class ISSSimpleService {
   /**
    * 🔄 Iniciar tracking automático (cada 5 segundos)
    */
-  startTracking(): void {
+  /*startTracking(): void {
     if (this.isTracking) return;
 
     this.isTracking = true;
@@ -185,14 +192,37 @@ export class ISSSimpleService {
 
       await this.getCurrentPosition();
     }, 5000);
+  }*/
+  startTracking(): void {
+    if (this.isTracking) return;
+    this.isTracking = true;
+
+    // Primer fetch inmediato (protegido contra solape)
+    if (!this.inFlight) {
+      this.inFlight = this.getCurrentPosition().finally(() => (this.inFlight = null));
+    }
+
+    // Polling cada 5s (no dispara si hay uno en curso)
+    this.pollId = window.setInterval(() => {
+      if (!this.isTracking || this.inFlight) return;
+      this.inFlight = this.getCurrentPosition().finally(() => (this.inFlight = null));
+    }, 5000);
   }
+
 
   /**
    * ⏹️ Parar tracking
    */
+  /* stopTracking(): void {
+     this.isTracking = false;
+     console.log('⏹️ Tracking de ISS detenido');
+   }*/
   stopTracking(): void {
     this.isTracking = false;
-    console.log('⏹️ Tracking de ISS detenido');
+    if (this.pollId !== null) {
+      clearInterval(this.pollId);   // se para YA, sin esperar al siguiente tick
+      this.pollId = null;
+    }
   }
 
   /**
@@ -242,4 +272,5 @@ export class ISSSimpleService {
   private toDegrees(radians: number): number {
     return radians * (180 / Math.PI);
   }
+  
 }
