@@ -1,0 +1,21 @@
+@import 'variables';
+
+@mixin glass-card($padding: 1.5rem) {
+  background: $glass-bg;
+  backdrop-filter: blur(10px);
+  border: 1px solid $glass-border;
+  border-radius: 16px;
+  padding: $padding;
+  box-shadow: $glass-shadow;
+}
+
+@mixin card-hover {
+  transition: all 0.3s ease;
+  cursor: pointer;
+  
+  &:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  }
+}

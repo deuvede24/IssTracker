@@ -1,31 +1,47 @@
 /* You can add global styles to this file, and also import other style files */
 
+/* === RESET Y BASE === */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: linear-gradient(135deg, #0a192f, #1e3a8a);
+  color: white;
+  overflow-x: hidden;
+}
+
+/* === ESTILOS ESPECÍFICOS DEL MAPA (conservados) === */
 app-map .mobile-map-container .map-legend {
   background: linear-gradient(135deg, #14249c, #3B4FBA) !important;
 }
 
-// ===== HEADER COHESIVO =====
 app-map .mobile-header {
   background: linear-gradient(135deg, #14249c, #3B4FBA) !important;
 }
 
-// ===== BOTÓN ISS COHESIVO =====
-/*app-map .flight-control {
+/* app-map .flight-control {
   background: linear-gradient(135deg, #2D3E99, #3B4FBA) !important;
   border-top: 1px solid rgba(100, 255, 218, 0.2) !important;
-}*/
+} */
 
-
-
-// ===== INFO DEL PASE COHESIVO =====
 app-map .mobile-pass-info {
   background: linear-gradient(135deg, #2D3E99, #14249c) !important;
 }
 
+/* === VIEWPORT HEIGHTS MEJORADOS === */
+.simple-home,
+.mobile-map-page,
+.simple-map {
+  min-height: 100vh;
+  min-height: 100svh;
+  min-height: 100dvh; /* Añadido: más moderno */
+  min-height: -webkit-fill-available;
+}
 
-/* Al final del archivo src/styles.scss */
-
-/* iPhone - Bottom nav no se esconda */
+/* === BOTTOM NAV SAFE AREA === */
 .app-bottom-nav,
 app-bottom-nav,
 .bottom-nav,
@@ -33,18 +49,40 @@ bottom-nav {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* Altura correcta en iPhone */
-.simple-home,
-.mobile-map-page,
-.simple-map {
-  min-height: 100vh;
-  min-height: 100svh;
-  /* iOS 15+ */
-  min-height: -webkit-fill-available;
-  /* Fallback */
-}
-
+/* === LOCATION REQUIRED STATE === */
 body.location-required .bottom-nav .nav-item:not([href*="/home"]) {
   opacity: 0.4;
   pointer-events: none;
+}
+
+/* === ANIMACIONES GLOBALES (nuevas) === */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    transform: scale(1); 
+    opacity: 1; 
+  }
+  50% { 
+    transform: scale(1.1); 
+    opacity: 0.7; 
+  }
+}
+
+@keyframes slideInUp {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+.spinning { 
+  animation: spin 1s linear infinite; 
 }
