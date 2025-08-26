@@ -267,7 +267,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   isNightTime(passTime: Date): boolean {
     const hour = passTime.getHours();
-    return hour >= 19 || hour <= 5;
+    return hour >= 19 || hour <= 7;
   }
 
   // Overlay retry

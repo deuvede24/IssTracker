@@ -169,7 +169,7 @@ export class ISSPassesService {
         latitude,
         longitude,
         14, // 14 días
-        5   // mínimo 5° elevación
+        8   // cambio a 8
       );
 
       console.log('🔢 REAL satellite.js calculations:', calculations.length);
@@ -361,9 +361,16 @@ export class ISSPassesService {
   /**
    * 🌙 Verificar si es pase nocturno
    */
+  /* private isNightPass(time: Date): boolean {
+     const hour = time.getHours();
+     return hour >= 18 || hour <= 7; // Entre 16:00 y 07:00
+   }*/
   private isNightPass(time: Date): boolean {
     const hour = time.getHours();
-    return hour >= 19 || hour <= 5; // Entre 19:00 y 05:00
+    console.log(`🔍 Evaluando pase: ${time.toLocaleTimeString()}, hour: ${hour}`);
+    const isNight = hour >= 18 || hour <= 7;
+    console.log(`🔍 Resultado isNight: ${isNight}`);
+    return isNight;
   }
 
   /**
