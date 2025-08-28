@@ -2,169 +2,162 @@
   <div class="iss-header">
     <button class="back-button" (click)="goBack()"><i class="bi bi-arrow-left"></i></button>
     <h1>🛰️ ISS Tracker</h1>
-    <button class="refresh-button" (click)="refreshData()"><i class="bi bi-arrow-clockwise"></i></button>
+    <button class="refresh-button" (click)="refreshData()" [disabled]="isRefreshing()">
+      <i class="bi bi-arrow-clockwise" [class.spinning]="isRefreshing()">
+      </i>
+    </button>
   </div>
 
   <!-- GLOBAL VIEW: solo mapa + banner -->
   @if (isGlobalView()) {
-    <div class="global-banner">
-      <div class="banner-content">
-        <i class="bi bi-globe"></i>
-        <div>
-          <strong>Live ISS Map</strong>
-          <small>Tracking the International Space Station in real-time</small>
-        </div>
+  <div class="global-banner">
+    <div class="banner-content">
+      <i class="bi bi-globe"></i>
+      <div>
+        <strong>Live ISS Map</strong>
+        <small>Tracking the International Space Station in real-time</small>
       </div>
     </div>
+  </div>
 
-    <div class="world-map-section">
-      <h3>🌍 ISS Position on World Map</h3>
-      <div class="world-map-container">
-        <mgl-map
-          [accessToken]="mapboxToken"
-          [style]="'mapbox://styles/mapbox/dark-v10'"
-          [zoom]="[2]"
-          [center]="issWorldCenter()"
-          class="world-map"
-          (mapLoad)="onWorldMapLoad($event)"
-          [preserveDrawingBuffer]="true">
+  <div class="world-map-section">
+    <h3>🌍 ISS Position on World Map</h3>
+    <div class="world-map-container">
+      <mgl-map [accessToken]="mapboxToken" [style]="'mapbox://styles/mapbox/dark-v10'" [zoom]="[2]"
+        [center]="issWorldCenter()" class="world-map" (mapLoad)="onWorldMapLoad($event)" [preserveDrawingBuffer]="true">
 
-          <!-- ISS marker -->
-          <mgl-marker [lngLat]="issWorldPosition()">
-            <div class="iss-world-marker">
-              <div class="world-satellite-glow"></div>
-              <div class="world-satellite-icon">🛰️</div>
-              <div class="iss-info-popup">
-                <div class="popup-content">
-                  <div class="iss-speed">{{ issPosition()?.velocity || '--' }} km/h</div>
-                  <div class="iss-altitude">{{ issPosition()?.altitude || '--' }} km</div>
-                </div>
+        <!-- ISS marker -->
+        <mgl-marker [lngLat]="issWorldPosition()">
+          <div class="iss-world-marker">
+            <div class="world-satellite-glow"></div>
+            <div class="world-satellite-icon">🛰️</div>
+            <div class="iss-info-popup">
+              <div class="popup-content">
+                <div class="iss-speed">{{ issPosition()?.velocity || '--' }} km/h</div>
+                <div class="iss-altitude">{{ issPosition()?.altitude || '--' }} km</div>
               </div>
             </div>
-          </mgl-marker>
+          </div>
+        </mgl-marker>
 
-          <!-- NO user marker / NO connection line en Global View -->
-        </mgl-map>
-      </div>
+        <!-- NO user marker / NO connection line en Global View -->
+      </mgl-map>
     </div>
+  </div>
 
-    <!-- Info básica en Global View -->
-    <div class="global-info-card">
-      <h3>ISS Status</h3>
-      <div class="info-row">
-        <span><strong>Currently over:</strong> {{ getOverRegion() }}</span>
-        <span><strong>Last update:</strong> {{ timeSinceUpdate() }}</span>
-      </div>
-      <div class="info-row">
-        <span><strong>Altitude:</strong> {{ issPosition()?.altitude || '--' }} km</span>
-        <span><strong>Speed:</strong> {{ issPosition()?.velocity || '--' }} km/h</span>
-      </div>
+  <!-- Info básica en Global View -->
+  <div class="global-info-card">
+    <h3>ISS Status</h3>
+    <div class="info-row">
+      <span><strong>Currently over:</strong> {{ getOverRegion() }}</span>
+      <span><strong>Last update:</strong> {{ timeSinceUpdate() }}</span>
     </div>
+    <div class="info-row">
+      <span><strong>Altitude:</strong> {{ issPosition()?.altitude || '--' }} km</span>
+      <span><strong>Speed:</strong> {{ issPosition()?.velocity || '--' }} km/h</span>
+    </div>
+  </div>
 
   } @else {
-    <!-- Vista completa (con usuario) -->
-    <div class="info-grid">
-      <div class="info-card distance">
-        <div class="label">Distance</div>
-        <div class="value">{{ distance() }} km</div>
+  <!-- Vista completa (con usuario) -->
+  <div class="info-grid">
+    <div class="info-card distance">
+      <div class="label">📏Distance</div>
+      <div class="value">{{ distance() }} km</div>
+    </div>
+    <div class="info-card over">
+      <div class="label">🌍 Over</div>
+      <div class="value">{{ getOverRegion() }}</div>
+    </div>
+    <div class="info-card movement">
+      <div class="label">🔄Movement</div>
+      <div class="value">{{ movement() }}</div>
+    </div>
+    <div class="info-card altitude">
+      <div class="label">⬆️Altitude</div>
+      <div class="value">{{ issPosition()?.altitude || '--' }} km</div>
+    </div>
+    <div class="info-card speed">
+      <div class="label">⚡Speed</div>
+      <div class="value">{{ issPosition()?.velocity || '--' }} km/h</div>
+    </div>
+    <div class="info-card visibility">
+      <div class="label">👁️Visibility</div>
+      <div class="value">{{ issPosition()?.visibility || '--' }}</div>
+    </div>
+  </div>
+
+  <!-- AVIONCITO VISUAL -->
+  <div class="iss-visual">
+    <div class="iss-direction-display">
+      <span class="iss-satellite">🛰️</span>
+
+      <div class="direction-line-container">
+        <div class="direction-line" [ngClass]="animationDirection()"></div>
+        <div class="movement-label">{{ movement() }}</div>
+        <div class="distance-label">{{ distance() }} km</div>
       </div>
-      <div class="info-card direction">
-        <div class="label">Direction</div>
-        <div class="value">{{ directionIcon() }} {{ cardinal() }}</div>
-      </div>
-      <div class="info-card movement">
-        <div class="label">Movement</div>
-        <div class="value">{{ movement() }}</div>
-      </div>
-      <div class="info-card altitude">
-        <div class="label">Altitude</div>
-        <div class="value">{{ issPosition()?.altitude || '--' }} km</div>
-      </div>
-      <div class="info-card speed">
-        <div class="label">Speed</div>
-        <div class="value">{{ issPosition()?.velocity || '--' }} km/h</div>
-      </div>
-      <div class="info-card visibility">
-        <div class="label">Visibility</div>
-        <div class="value">{{ issPosition()?.visibility || '--' }}</div>
-      </div>
+
+      <span class="you-location">📍 You</span>
+    </div>
+  </div>
+
+  <!-- INFO CONTEXTUAL -->
+  <div class="context-info">
+    <div class="status-card">
+      <h3>ISS Status</h3>
+      <p><strong>Currently over:</strong> {{ getOverRegion() }}</p>
+      <p><strong>Your location:</strong> {{ userLocation()?.city || 'Unknown' }}</p>
+      <p><strong>Last update:</strong> {{ timeSinceUpdate() }}</p>
     </div>
 
-    <!-- AVIONCITO VISUAL -->
-    <div class="iss-visual">
-      <div class="iss-direction-display">
-        <span class="iss-satellite">🛰️</span>
-        
-        <div class="direction-line-container">
-          <div class="direction-line"></div>
-          <div class="direction-label">
-            {{ directionIcon() }} {{ cardinal() }}
-          </div>
-          <div class="movement-label">{{ movement() }}</div>
-        </div>
-        
-        <span class="you-location">📍 You</span>
-      </div>
-    </div>
 
-    <!-- INFO CONTEXTUAL -->
-    <div class="context-info">
-      <div class="status-card">
-        <h3>ISS Status</h3>
-        <p><strong>Currently over:</strong> {{ getOverRegion() }}</p>
-        <p><strong>Your location:</strong> {{ userLocation()?.city || 'Unknown' }}</p>
-        <p><strong>Last update:</strong> {{ timeSinceUpdate() }}</p>
-      </div>
-      
-      <div class="note">
-        <i class="bi bi-info-circle"></i>
-        The arrow shows the direction from your location to the ISS.
-      </div>
-    </div>
+  </div>
 
-    <div class="world-map-section">
-      <h3>🌍 ISS Position on World Map</h3>
-      <div class="world-map-container">
-        <mgl-map
-          [accessToken]="mapboxToken"
-          [style]="'mapbox://styles/mapbox/dark-v10'"
-          [zoom]="[2]"
-          [center]="issWorldCenter()"
-          class="world-map"
-          (mapLoad)="onWorldMapLoad($event)"
-          [preserveDrawingBuffer]="true">
+  <div class="world-map-section">
+    <h3>🌍 ISS Position on World Map</h3>
+    <div class="world-map-container">
+      <mgl-map [accessToken]="mapboxToken" [style]="'mapbox://styles/mapbox/dark-v10'" [zoom]="[2]"
+        [center]="issWorldCenter()" class="world-map" (mapLoad)="onWorldMapLoad($event)" [preserveDrawingBuffer]="true">
 
-          <!-- ISS -->
-          <mgl-marker [lngLat]="issWorldPosition()">
-            <div class="iss-world-marker">
-              <div class="world-satellite-glow"></div>
-              <div class="world-satellite-icon">🛰️</div>
-              <div class="iss-info-popup">
-                <div class="popup-content">
-                  <div class="iss-speed">{{ issPosition()?.velocity || '--' }} km/h</div>
-                  <div class="iss-altitude">{{ issPosition()?.altitude || '--' }} km</div>
-                </div>
+        <!-- ISS -->
+        <mgl-marker [lngLat]="issWorldPosition()">
+          <div class="iss-world-marker">
+            <div class="world-satellite-glow"></div>
+            <div class="world-satellite-icon">🛰️</div>
+            <div class="iss-info-popup">
+              <div class="popup-content">
+                <div class="iss-speed">{{ issPosition()?.velocity || '--' }} km/h</div>
+                <div class="iss-altitude">{{ issPosition()?.altitude || '--' }} km</div>
               </div>
             </div>
-          </mgl-marker>
+          </div>
+        </mgl-marker>
 
-          <!-- Usuario -->
-          @if (showUserMarker()) {
-            <mgl-marker [lngLat]="userWorldPosition()">
-              <div class="user-world-marker">
-                <div class="user-pulse"></div>
-                <div class="user-icon">📍</div>
-              </div>
-            </mgl-marker>
+        <!-- Usuario -->
+        @if (showUserMarker()) {
+        <mgl-marker [lngLat]="userWorldPosition()">
+          <div class="user-world-marker">
+            <div class="user-pulse"></div>
+            <div class="user-icon">📍</div>
+          </div>
+        </mgl-marker>
 
-            <!-- Línea conexión -->
-            <mgl-geojson-source id="connection-line" [data]="connectionLineData()"></mgl-geojson-source>
-            <mgl-line-layer id="connection" source="connection-line"
-              [paint]="{ 'line-color': '#64ffda', 'line-width': 2, 'line-dasharray': [6, 4], 'line-opacity': 0.6 }">
-            </mgl-line-layer>
-          }
-        </mgl-map>
-      </div>
+        <!-- Línea conexión -->
+        <mgl-geojson-source id="connection-line" [data]="connectionLineData()"></mgl-geojson-source>
+        <mgl-line-layer id="connection" source="connection-line"
+          [paint]="{ 'line-color': '#64ffda', 'line-width': 2, 'line-dasharray': [6, 4], 'line-opacity': 0.6 }">
+        </mgl-line-layer>
+        }
+      </mgl-map>
     </div>
+  </div>
   }
+  <!-- Scroll to top button -->
+  @if (showScrollButton()) {
+  <button class="scroll-to-top" (click)="scrollToTop()">
+    <i class="bi bi-arrow-up"></i>
+  </button>
+  }
+
 </div>

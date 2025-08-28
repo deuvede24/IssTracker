@@ -1,5 +1,5 @@
 // src/app/features/iss/iss.component.ts
-import { Component, OnInit, OnDestroy, computed, inject, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, OnInit, OnDestroy, computed, inject, CUSTOM_ELEMENTS_SCHEMA, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NgxMapboxGLModule } from 'ngx-mapbox-gl';
@@ -23,12 +23,25 @@ export class IssComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
+  private scrollTimer?: ReturnType<typeof setTimeout>;
+  private issPageEl?: HTMLElement;
+
+  private previousDistance?: number;
+
+  private onScroll = (e: Event) => {
+  const el = e.target as HTMLElement;
+  this.showScrollButton.set(el.scrollTop > 200);
+};
+
+
   // Datos
   issPosition = this.issService.position;
   userLocation = this.locationService.location;
   locationStatus = this.locationService.status;
   retriesLeft = this.locationService.retriesLeft;
 
+  isRefreshing = signal(false);
+  showScrollButton = signal(false);
   // Global View si: ?showISSNow=true ó no hay ubicación tras agotar reintentos
   isGlobalView = computed(() => {
     const showISSNow = this.route.snapshot.queryParamMap.get('showISSNow');
@@ -50,22 +63,37 @@ export class IssComponent implements OnInit, OnDestroy {
     return this.issService.calculateBearingFromUser(userLoc.latitude, userLoc.longitude);
   });
   cardinal = computed(() => bearingToCardinal(this.bearing()));
-  directionIcon = computed(() => {
+
+  /*directionIcon = computed(() => {
     const b = this.bearing();
     if (b >= 315 || b < 45) return '↓';
     if (b >= 45 && b < 135) return '↙️';
     if (b >= 135 && b < 225) return '↑';
     return '↘️';
-  });
+  });*/ 
+  
   movement = computed(() => {
-    const userLoc = this.userLocation();
-    const issPos = this.issPosition();
-    if (!userLoc || !issPos) return 'Unknown';
-    const latDiff = Math.abs(issPos.latitude - userLoc.latitude);
-    const lonDiff = Math.abs(issPos.longitude - userLoc.longitude);
-    if (lonDiff > 90) return issPos.velocity > 25000 ? 'Moving away' : 'Approaching';
-    return latDiff < 45 ? 'Getting closer' : 'Moving away';
-  });
+  const userLoc = this.userLocation();
+  const issPos = this.issPosition();
+  if (!userLoc || !issPos) return 'Unknown';
+  
+  // Calcular distancia actual
+  const currentDistance = this.issService.calculateDistanceFromUser(userLoc.latitude, userLoc.longitude);
+  
+  // Si no hay distancia previa, devolver Unknown
+  if (!this.previousDistance) {
+    this.previousDistance = currentDistance;
+    return 'Unknown';
+  }
+  
+  const diff = currentDistance - this.previousDistance;
+  this.previousDistance = currentDistance;
+  
+  // Umbral anti-ruido
+  if (Math.abs(diff) < 2) return 'Passing by';
+  
+  return diff < 0 ? 'Getting closer' : 'Moving away';
+});
 
   // Mapbox
   mapboxToken = environment.mapboxToken;
@@ -79,6 +107,7 @@ export class IssComponent implements OnInit, OnDestroy {
 
   // En Global View NO pintamos el pin del usuario
   showUserMarker = computed(() => !!this.userLocation() && !this.isGlobalView());
+
   userWorldPosition = computed<[number, number]>(() => {
     const userLoc = this.userLocation();
     if (!userLoc) return [2.1734, 41.3851]; // (no se usa si showUserMarker() === false)
@@ -103,20 +132,50 @@ export class IssComponent implements OnInit, OnDestroy {
     };
   });
 
+animationDirection = computed(() => {
+  const mov = this.movement();
+  if (mov === 'Getting closer') return 'toward-you';
+  if (mov === 'Moving away') return 'away-from-you';
+  return 'neutral'; // Passing by / Unknown
+});
+
   ngOnInit(): void {
     console.log('🛰️ ISS Component iniciado');
     this.issService.startTracking();
     // No forzamos getUserLocation() aquí para no reabrir prompts cuando estamos en Global View
+    /*  setTimeout(() => {
+        const issPageElement = document.querySelector('.iss-page');
+        if (issPageElement) {
+          issPageElement.addEventListener('scroll', () => {
+            const scrollPosition = issPageElement.scrollTop;
+            console.log('ISS page internal scroll:', scrollPosition);
+            this.showScrollButton.set(scrollPosition > 200);
+          });
+        }
+      }, 100);*/
+    this.scrollTimer = setTimeout(() => {
+      this.issPageEl = document.querySelector('.iss-page') as HTMLElement | null || undefined;
+      this.issPageEl?.addEventListener('scroll', this.onScroll, { passive: true });
+    }, 100);
+
   }
 
   ngOnDestroy(): void {
     console.log('🛰️ ISS Component destruido');
-    this.issService.stopTracking();  
+    this.issService.stopTracking();
+    /* const issPageElement = document.querySelector('.iss-page');
+     if (issPageElement) {
+       issPageElement.removeEventListener('scroll', this.handleScroll);
+     }*/
+    if (this.scrollTimer) clearTimeout(this.scrollTimer);
+    this.issPageEl?.removeEventListener('scroll', this.onScroll);
+    this.issPageEl = undefined;
   }
 
   onWorldMapLoad(evt: any): void {
     this.worldMap = evt.target as mapboxgl.Map;
     setTimeout(() => this.fitMapToPoints(), 600);
+
   }
 
   private fitMapToPoints(): void {
@@ -137,8 +196,23 @@ export class IssComponent implements OnInit, OnDestroy {
 
   goBack(): void { this.router.navigate(['/home']); }
 
-  refreshData(): void {
-    this.issService.getCurrentPosition().then(() => setTimeout(() => this.fitMapToPoints(), 200));
+  /* refreshData(): void {
+     this.issService.getCurrentPosition().then(() => setTimeout(() => this.fitMapToPoints(), 200));
+   }*/
+  async refreshData(): Promise<void> {
+    if (this.isRefreshing()) return;
+
+    this.isRefreshing.set(true);
+
+    try {
+      await this.issService.getCurrentPosition();
+      setTimeout(() => this.fitMapToPoints(), 200);
+    } catch (error) {
+      console.error('Error refreshing ISS data:', error);
+    } finally {
+      // Mínimo 600ms para feedback visual como en Alerts
+      setTimeout(() => this.isRefreshing.set(false), 600);
+    }
   }
 
   // Helpers UI
@@ -161,5 +235,9 @@ export class IssComponent implements OnInit, OnDestroy {
     if (issPos.longitude > 140 || issPos.longitude < -140) return 'Pacific Ocean';
     if (issPos.longitude > -140 && issPos.longitude < -30) return 'Americas';
     return 'Ocean';
+  }
+
+  scrollToTop(): void {
+  this.issPageEl?.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }
