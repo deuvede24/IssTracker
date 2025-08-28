@@ -1,2 +1,4 @@
-@import 'variables';
-@import 'mixins';
+/* Asegúrate de tener solo esto */
+@forward 'variables';
+@forward 'mixins';
+/* @forward 'animations'; // si existe */
