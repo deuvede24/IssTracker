@@ -1,6 +1,7 @@
 // src/app/services/satellite-calculator.service.ts (CON TIPOS ARREGLADOS)
 
 import { Injectable, signal } from '@angular/core';
+import { isNightLocal } from '../shared/time-window.util';
 import * as satellite from 'satellite.js';
 
 export interface TLEData {
@@ -195,21 +196,36 @@ export class SatelliteCalculatorService {
 
       // 3. Filtrar pases nocturnos
       //  const nightPasses = allPasses.filter(pass => this.isNightTime(pass.startTime));
-      const nightPasses = allPasses.filter(pass => this.isNightTime(pass.startTime, latitude));
-      console.log(`🌙 Pases nocturnos encontrados: ${nightPasses.length}`);
-
-      if (nightPasses.length > 0) {
-        const finalPasses = nightPasses
-          .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
-          .slice(0, 3);
-
-        console.log('✅ Usando pases REALES calculados:', finalPasses.length);
-        return finalPasses;
-      } else {
-        // 4. Fallback inteligente si no encuentra nada
-        console.log('🎨 No hay pases nocturnos, usando fallback inteligente...');
+      /*  const nightPasses = allPasses.filter(pass => this.isNightTime(pass.startTime, latitude));
+        console.log(`🌙 Pases nocturnos encontrados: ${nightPasses.length}`);
+  
+        if (nightPasses.length > 0) {
+          const finalPasses = nightPasses
+            .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
+            .slice(0, 3);
+  
+          console.log('✅ Usando pases REALES calculados:', finalPasses.length);
+          return finalPasses;
+        } else {
+          // 4. Fallback inteligente si no encuentra nada
+          console.log('🎨 No hay pases nocturnos, usando fallback inteligente...');
+          return this.generateIntelligentFallback(latitude, longitude);
+        }
+  
+      } catch (error) {
+        console.error('❌ Error calculando pases reales:', error);
+        return this.generateIntelligentFallback(latitude, longitude);
+      }*/
+      // 3) Devolver TODOS (ordenados). La separación night/day la hace ISSPassesService.
+      if (allPasses.length === 0) {
+        console.log('🎨 No hay pases calculados, usando fallback inteligente...');
         return this.generateIntelligentFallback(latitude, longitude);
       }
+
+      allPasses.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+
+      console.log(`✅ Pases calculados: ${allPasses.length} (sin filtro noche/día)`);
+      return allPasses;
 
     } catch (error) {
       console.error('❌ Error calculando pases reales:', error);
@@ -355,7 +371,7 @@ export class SatelliteCalculatorService {
   * 🌙 Verificar si es horario nocturno - VERSIÓN CONSERVADORA
   * Mantiene rangos amplios, solo ajusta casos extremos
   */
-  private isNightTime(date: Date, latitude: number): boolean {
+  /*private isNightTime(date: Date, latitude: number): boolean {
     const month = date.getMonth(); // 0-11
     const hour = date.getHours();
 
@@ -379,6 +395,9 @@ export class SatelliteCalculatorService {
 
     // Resto de casos (verano, primavera, otoño): mantener tu rango actual
     return hour >= 18 || hour <= 7;
+  }*/
+  private isNightTime(date: Date, latitude: number): boolean {
+    return isNightLocal(date, latitude);
   }
 
   /**

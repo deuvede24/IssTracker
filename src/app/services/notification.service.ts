@@ -2,6 +2,7 @@
 
 import { Injectable, signal } from '@angular/core';
 import { PassHome } from '../interfaces/pass.interface';
+import { isNightLocal } from '../shared/time-window.util';
 
 export type NotificationType = '1week' | '1day' | '15min' | 'now';
 
@@ -119,7 +120,8 @@ export class NotificationService {
     }
 
     // 📅 PROGRAMACIÓN DE NOTIFICACIONES
-    scheduleNotificationsForPasses(passes: PassHome[]): void {
+    // scheduleNotificationsForPasses(passes: PassHome[]): void {
+    scheduleNotificationsForPasses(passes: PassHome[], userLatitude: number): void {
         if (!this.isEnabled) {
             console.log('🔔 Notificaciones deshabilitadas, no programando');
             return;
@@ -136,7 +138,8 @@ export class NotificationService {
 
         passes.forEach(pass => {
             // Solo pases futuros y nocturnos (visibles)
-            if (pass.time.getTime() > now && this.isNightTime(pass.time)) {
+            // if (pass.time.getTime() > now && this.isNightTime(pass.time)) {
+            if (pass.time.getTime() > now && this.isNightTime(pass.time, userLatitude)) {
 
                 // 📆 1 SEMANA ANTES
                 if (settings.types['1week']) {
@@ -371,9 +374,12 @@ export class NotificationService {
         setTimeout(() => notification.close(), 5000);
     }
 
-    private isNightTime(date: Date): boolean {
-        const hour = date.getHours();
-        return hour >= 19 || hour <= 5; // 7PM - 6AM
+    /* private isNightTime(date: Date): boolean {
+         const hour = date.getHours();
+         return hour >= 19 || hour <= 5; // 7PM - 6AM
+     }*/
+    private isNightTime(date: Date, userLatitude: number): boolean {
+        return isNightLocal(date, userLatitude);
     }
 
     // 📊 DEBUG INFO
