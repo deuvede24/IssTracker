@@ -70,9 +70,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   shouldShowOverlay = computed(() =>
     this.locationStatus() === 'failed' &&
     this.retriesLeft() > 0 &&
-    !this.hasValidLocation() // ⬅️ evita overlay si ya tenemos lat/lon válidos
+    !this.hasValidLocation()
   );
-
 
   // estado final sin ubicación → Home simplificada
   isNoLocationFinal = computed(() => this.locationStatus() === 'failed' && this.retriesLeft() === 0);
@@ -80,7 +79,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   isNoLocationOrLocked = computed(() => {
     const s = this.locationStatus();
     const left = this.retriesLeft();
-    // 🔒 Si no quedan intentos, mostramos SIEMPRE la Home simplificada,
+    // Si no quedan intentos, mostramos SIEMPRE la Home simplificada,
     // incluso si el estado transitorio es 'loading'
     return left === 0 && (s === 'failed' || s === 'loading');
   });
@@ -206,36 +205,28 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
   }
 
-
- /* ngOnDestroy(): void {
+  ngOnDestroy(): void {
     if (this.cooldownTimer) clearInterval(this.cooldownTimer);
+    document.body.classList.remove('location-required');
     this.issService.stopTracking();
-  }*/
- ngOnDestroy(): void {
-  if (this.cooldownTimer) clearInterval(this.cooldownTimer);
-  document.body.classList.remove('location-required'); // ← añadir
-  this.issService.stopTracking();
-}
-
+  }
 
   // ==== Navegación / acciones ====
   goToMapWithPass(pass: PassHome) {
     this.router.navigate(['/map'], { queryParams: { passId: pass.id } });
   }
 
-  goToMap() { this.router.navigate(['/map']); }
-
- /* showISSNow() {
-    this.router.navigate(['/iss'], { queryParams: { showISSNow: 'true' } });
-  }*/
- showISSNow() {
-  if (this.hasValidLocation()) {
-    this.router.navigate(['/iss']);                   // vista completa
-  } else {
-    this.router.navigate(['/iss'], { queryParams: { showISSNow: 'true' } }); // Global View
+  goToMap() { 
+    this.router.navigate(['/map']); 
   }
-}
 
+  showISSNow() {
+    if (this.hasValidLocation()) {
+      this.router.navigate(['/iss']);
+    } else {
+      this.router.navigate(['/iss'], { queryParams: { showISSNow: 'true' } });
+    }
+  }
 
   async toggleNotifications(): Promise<void> {
     const enabled = await this.notificationService.toggleNotifications();
@@ -267,7 +258,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   isNightTime(passTime: Date): boolean {
     const hour = passTime.getHours();
-    return hour >= 19 || hour <= 7;
+    return hour >= 18 || hour <= 7; // Cambio: 19 → 18 para sincronizar con servicio
   }
 
   // Overlay retry
