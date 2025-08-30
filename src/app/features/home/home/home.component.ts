@@ -81,6 +81,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     const s = this.locationStatus();
     const left = this.retriesLeft();
     // Si no quedan intentos, mostramos SIEMPRE la Home simplificada,
+    // Si no quedan intentos, mostramos SIEMPRE la Home simplificada,
     // incluso si el estado transitorio es 'loading'
     return left === 0 && (s === 'failed' || s === 'loading');
   });
@@ -212,7 +213,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     document.body.classList.remove('location-required');
     this.issService.stopTracking();
   }
-
+ 
   // ==== Navegación / acciones ====
   goToMapWithPass(pass: PassHome) {
     this.router.navigate(['/map'], { queryParams: { passId: pass.id } });
