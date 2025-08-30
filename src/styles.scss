@@ -34,7 +34,9 @@ app-map .mobile-pass-info {
 /* === VIEWPORT HEIGHTS MEJORADOS === */
 .simple-home,
 .mobile-map-page,
-.simple-map {
+.simple-map, 
+.iss-page,           
+.alerts-page {
   min-height: 100vh;
   min-height: 100svh;
   min-height: 100dvh; /* Añadido: más moderno */
