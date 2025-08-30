@@ -4,7 +4,7 @@ import { Injectable, signal, inject } from '@angular/core';
 import { PassHome } from '../interfaces/pass.interface';
 import { SatelliteCalculatorService, PassCalculation } from './satellite-calculator.service';
 import { LocalReferenceService } from './local-reference.service';
-
+import { isNightLocal } from '../shared/time-window.util';
 
 @Injectable({
   providedIn: 'root'
@@ -189,8 +189,11 @@ export class ISSPassesService {
       );
 
       // 🎯 Lógica inteligente: separar nocturnos vs diurnos
-      const nightPasses = allPasses.filter(pass => this.isNightPass(pass.time));
-      const dayPasses = allPasses.filter(pass => !this.isNightPass(pass.time));
+      // const nightPasses = allPasses.filter(pass => this.isNightPass(pass.time));
+      // const dayPasses = allPasses.filter(pass => !this.isNightPass(pass.time));
+      const nightPasses = allPasses.filter(pass => this.isNightPass(pass.time, latitude));
+      const dayPasses = allPasses.filter(pass => !this.isNightPass(pass.time, latitude));
+
 
       console.log(`🌙 REAL night passes: ${nightPasses.length}`);
       console.log(`☀️ REAL day passes:  ${dayPasses.length}`);
@@ -329,7 +332,8 @@ export class ISSPassesService {
     // Emoji de brújula (mantener tu lógica actual)
     const compass = this.getCompassEmoji(calculation.startAzimuth, calculation.endAzimuth);
 
-    const isNight = this.isNightPass(calculation.startTime);
+    // const isNight = this.isNightPass(calculation.startTime);
+    const isNight = this.isNightPass(calculation.startTime, userLat);
     const brightness = isNight
       ? this.getBrightnessDescription(calculation.brightness)  // Solo si es de noche
       : 'Day pass — not visible';                              // Si es de día
@@ -365,11 +369,17 @@ export class ISSPassesService {
      const hour = time.getHours();
      return hour >= 18 || hour <= 7; // Entre 16:00 y 07:00
    }*/
-  private isNightPass(time: Date): boolean {
+
+  /*private isNightPass(time: Date): boolean {
     const hour = time.getHours();
     console.log(`🔍 Evaluando pase: ${time.toLocaleTimeString()}, hour: ${hour}`);
     const isNight = hour >= 18 || hour <= 7;
     console.log(`🔍 Resultado isNight: ${isNight}`);
+    return isNight;
+  }*/
+  private isNightPass(time: Date, latitude: number): boolean {
+    const isNight = isNightLocal(time, latitude);
+    console.log(`Evaluando pase: ${time.toLocaleTimeString()}, lat: ${latitude.toFixed(2)}, isNight: ${isNight}`);
     return isNight;
   }
 
@@ -510,7 +520,9 @@ export class ISSPassesService {
           if (isNaN(time.getTime())) return null; // descarta corruptos
 
           const isFuture = time.getTime() > now;
-          const viewable = isFuture && this.isNightPass(time);
+          //const viewable = isFuture && this.isNightPass(time);
+          const lat = this.lastFetchLocation?.lat ?? 35; // neutral mundial
+          const viewable = isFuture && this.isNightPass(time, lat);
 
           return {
             ...p,

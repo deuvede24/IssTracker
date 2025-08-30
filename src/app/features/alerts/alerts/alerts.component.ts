@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { NotificationService, NotificationType } from '../../../services/notification.service';
 import { ISSPassesService } from '../../../services/iss-passes.service';
 import { LocationSimpleService } from '../../../services/location-simple.service';
+import { isNightLocal } from '../../../shared/time-window.util';
 
 @Component({
   selector: 'app-alerts',
@@ -147,7 +148,12 @@ export class AlertsComponent implements OnInit, OnDestroy {
     const passes = this.passesService.passes();
 
     if (passes.length > 0 && this.isEnabled()) {
-      this.notificationService.scheduleNotificationsForPasses(passes);
+      //  this.notificationService.scheduleNotificationsForPasses(passes);
+      const userLocation = this.locationService.location();
+      if (userLocation) {
+        this.notificationService.scheduleNotificationsForPasses(passes, userLocation.latitude);
+      }
+
     }
   }
 
@@ -179,8 +185,13 @@ export class AlertsComponent implements OnInit, OnDestroy {
     // Notificación cumple su función: informar
   }
 
+  /* private isNightTime(date: Date): boolean {
+     const hour = date.getHours();
+     return hour >= 19 || hour <= 5;
+   }*/
   private isNightTime(date: Date): boolean {
-    const hour = date.getHours();
-    return hour >= 19 || hour <= 5;
+    const lat = this.locationService.location()?.latitude ?? 35;
+    return isNightLocal(date, lat);
   }
+
 }

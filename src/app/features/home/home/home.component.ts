@@ -9,6 +9,7 @@ import { ISSSimpleService } from '../../../services/iss-simple.service';
 import { LocationSimpleService } from '../../../services/location-simple.service';
 import { ISSPassesService } from '../../../services/iss-passes.service';
 import { NotificationService } from '../../../services/notification.service';
+import { isNightLocal } from '../../../shared/time-window.util';
 
 @Component({
   selector: 'app-home',
@@ -79,6 +80,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   isNoLocationOrLocked = computed(() => {
     const s = this.locationStatus();
     const left = this.retriesLeft();
+    // Si no quedan intentos, mostramos SIEMPRE la Home simplificada,
     // Si no quedan intentos, mostramos SIEMPRE la Home simplificada,
     // incluso si el estado transitorio es 'loading'
     return left === 0 && (s === 'failed' || s === 'loading');
@@ -186,7 +188,8 @@ export class HomeComponent implements OnInit, OnDestroy {
             await this.passesService.getRealPasses(userLocation.latitude, userLocation.longitude);
             const passes = this.passesService.passes();
             if (passes.length > 0 && this.notificationService.isEnabled) {
-              this.notificationService.scheduleNotificationsForPasses(passes);
+              //  this.notificationService.scheduleNotificationsForPasses(passes);
+              this.notificationService.scheduleNotificationsForPasses(passes, userLocation.latitude);
             }
           } catch (err) {
             console.error('❌ Error cargando pases:', err);
@@ -210,14 +213,14 @@ export class HomeComponent implements OnInit, OnDestroy {
     document.body.classList.remove('location-required');
     this.issService.stopTracking();
   }
-
+ 
   // ==== Navegación / acciones ====
   goToMapWithPass(pass: PassHome) {
     this.router.navigate(['/map'], { queryParams: { passId: pass.id } });
   }
 
-  goToMap() { 
-    this.router.navigate(['/map']); 
+  goToMap() {
+    this.router.navigate(['/map']);
   }
 
   showISSNow() {
@@ -228,11 +231,21 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
   }
 
-  async toggleNotifications(): Promise<void> {
+  /*async toggleNotifications(): Promise<void> {
     const enabled = await this.notificationService.toggleNotifications();
     if (enabled) {
       const passes = this.passesService.passes();
       if (passes.length > 0) this.notificationService.scheduleNotificationsForPasses(passes);
+    }
+  }*/
+  async toggleNotifications(): Promise<void> {
+    const enabled = await this.notificationService.toggleNotifications();
+    if (enabled) {
+      const passes = this.passesService.passes();
+      const userLocation = this.locationService.location();
+      if (passes.length > 0 && userLocation) {
+        this.notificationService.scheduleNotificationsForPasses(passes, userLocation.latitude);
+      }
     }
   }
 
@@ -252,13 +265,21 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
     if (this.notificationService.isEnabled) {
       const passes = this.passesService.passes();
-      this.notificationService.scheduleNotificationsForPasses(passes);
+      // this.notificationService.scheduleNotificationsForPasses(passes);
+      const userLocation = this.locationService.location();
+      if (userLocation && this.notificationService.isEnabled) {
+        this.notificationService.scheduleNotificationsForPasses(passes, userLocation.latitude);
+      }
     }
   }
 
-  isNightTime(passTime: Date): boolean {
+  /*isNightTime(passTime: Date): boolean {
     const hour = passTime.getHours();
     return hour >= 18 || hour <= 7; // Cambio: 19 → 18 para sincronizar con servicio
+  }*/
+  isNightTime(passTime: Date): boolean {
+    const lat = this.locationService.location()?.latitude ?? 35;
+    return isNightLocal(passTime, lat);
   }
 
   // Overlay retry
