@@ -32,16 +32,16 @@ app-map .mobile-pass-info {
 }
 
 /* === VIEWPORT HEIGHTS MEJORADOS === */
-.simple-home,
+/*.simple-home,
 .mobile-map-page,
 .simple-map, 
 .iss-page,           
 .alerts-page {
   min-height: 100vh;
   min-height: 100svh;
-  min-height: 100dvh; /* Añadido: más moderno */
+  min-height: 100dvh; 
   min-height: -webkit-fill-available;
-}
+}*/
 
 /* === BOTTOM NAV SAFE AREA === */
 .app-bottom-nav,
