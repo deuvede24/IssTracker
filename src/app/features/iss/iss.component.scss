@@ -246,7 +246,7 @@
 
 .world-map-container {
   position: relative;
-  height: 40vh;
+  height: 45vh;
   min-height: $world-map-min-height;
   max-height: $world-map-max-height;
   margin-bottom: 3rem;
@@ -459,9 +459,9 @@
     p { font-size: 0.85rem; margin: 0.25rem 0; }
   }
   .world-map-container { 
-    height: 35vh; 
-    min-height: 250px; 
-    max-height: 350px; 
+    height: 38vh; 
+    min-height: 280px; 
+    max-height: 380px; 
     margin-bottom: 2rem; 
     border-radius: 12px; 
   }
@@ -476,7 +476,7 @@
 @media (max-width: 480px) {
   .iss-page { padding: 0 0.25rem 90px; }
   .world-map-container { 
-    height: 30vh; 
+    height: 32vh; 
     min-height: 280px; 
     max-height: 400px; 
     border-radius: 8px; 
@@ -508,4 +508,68 @@
   .spinning {
     animation: none !important;
   }
+}
+
+/* Llevar el bloque al borde de la pantalla, ignorando el padding lateral de la page */
+.edge-to-edge {
+  position: relative;
+  left: 50%;
+  right: 50%;
+  width: 100vw;
+  margin-left: -50vw;
+  margin-right: -50vw;
+}
+
+/* Contenedor circular que recorta el mapa como “globo” */
+.globe-hero {
+  padding: 8px 0 0;
+  /* el fondo ya es el de la app (gradiente); no añadimos caja */
+}
+
+.globe-disk {
+  width: min(92vw, 420px);
+  aspect-ratio: 1 / 1;
+  margin: 8px auto 4px;
+  border-radius: 9999px;
+  overflow: hidden;
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.35),
+    inset 0 0 50px rgba(0, 0, 0, 0.45);
+}
+
+/* El <mgl-map> ocupa todo el disco */
+.globe-map {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Asegurar que el canvas de mapbox rellena el disco */
+.globe-disk .mapboxgl-canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Overlay de título/texto bajo el globo */
+.globe-overlay {
+  text-align: center;
+  margin: 4px 0 10px;
+  h3 {
+    font-size: 1rem;
+    margin: 0 0 2px;
+  }
+  small {
+    opacity: .9;
+  }
+}
+
+/* Marcadores simples */
+.iss-globe-marker,
+.user-globe-marker {
+  font-size: 18px;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.5));
+}
+
+.globe-map, .globe-map canvas, .mapboxgl-canvas {
+  background: transparent !important;
 }
