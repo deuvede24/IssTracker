@@ -302,9 +302,6 @@
   box-shadow: $glass-shadow;
   border: 1px solid rgba($primary-cyan, 0.2);
   background: rgba(0, 0, 0, 0.3);
-  &:not(:hover) .world-map {
-    pointer-events: none;
-  }
 }
 
 .world-map {
