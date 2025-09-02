@@ -41,6 +41,7 @@ app-map .mobile-pass-info {
   min-height: 100svh;
   min-height: 100dvh; 
   min-height: -webkit-fill-available;
+
 }*/
 
 
@@ -114,4 +115,18 @@ body.location-required .bottom-nav .nav-item:not([href*="/home"]) {
 
 .spinning {
   animation: spin 1s linear infinite;
+}
+
+/* Desbloquear scroll global */
+html, body {
+  height: auto !important;
+  min-height: 100% !important;
+  overflow-y: auto !important;
+}
+
+/* Asegurar que ningún wrapper lo “fije” */
+app-root, app-component, .app-shell, .app-container, main {
+  position: static !important;
+  height: auto !important;
+  overflow: visible !important;
 }

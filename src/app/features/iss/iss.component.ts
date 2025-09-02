@@ -25,13 +25,14 @@ export class IssComponent implements OnInit, OnDestroy {
 
   private scrollTimer?: ReturnType<typeof setTimeout>;
   private issPageEl?: HTMLElement;
+  private scrollContainer?: HTMLElement;
 
   private previousDistance?: number;
 
   private onScroll = (e: Event) => {
-  const el = e.target as HTMLElement;
-  this.showScrollButton.set(el.scrollTop > 200);
-};
+    const el = e.target as HTMLElement;
+    this.showScrollButton.set(el.scrollTop > 200);
+  };
 
 
   // Datos
@@ -70,30 +71,30 @@ export class IssComponent implements OnInit, OnDestroy {
     if (b >= 45 && b < 135) return '↙️';
     if (b >= 135 && b < 225) return '↑';
     return '↘️';
-  });*/ 
-  
+  });*/
+
   movement = computed(() => {
-  const userLoc = this.userLocation();
-  const issPos = this.issPosition();
-  if (!userLoc || !issPos) return 'Unknown';
-  
-  // Calcular distancia actual
-  const currentDistance = this.issService.calculateDistanceFromUser(userLoc.latitude, userLoc.longitude);
-  
-  // Si no hay distancia previa, devolver Unknown
-  if (!this.previousDistance) {
+    const userLoc = this.userLocation();
+    const issPos = this.issPosition();
+    if (!userLoc || !issPos) return 'Unknown';
+
+    // Calcular distancia actual
+    const currentDistance = this.issService.calculateDistanceFromUser(userLoc.latitude, userLoc.longitude);
+
+    // Si no hay distancia previa, devolver Unknown
+    if (!this.previousDistance) {
+      this.previousDistance = currentDistance;
+      return 'Unknown';
+    }
+
+    const diff = currentDistance - this.previousDistance;
     this.previousDistance = currentDistance;
-    return 'Unknown';
-  }
-  
-  const diff = currentDistance - this.previousDistance;
-  this.previousDistance = currentDistance;
-  
-  // Umbral anti-ruido
-  if (Math.abs(diff) < 2) return 'Passing by';
-  
-  return diff < 0 ? 'Getting closer' : 'Moving away';
-});
+
+    // Umbral anti-ruido
+    if (Math.abs(diff) < 2) return 'Passing by';
+
+    return diff < 0 ? 'Getting closer' : 'Moving away';
+  });
 
   // Mapbox
   mapboxToken = environment.mapboxToken;
@@ -132,30 +133,28 @@ export class IssComponent implements OnInit, OnDestroy {
     };
   });
 
-animationDirection = computed(() => {
-  const mov = this.movement();
-  if (mov === 'Getting closer') return 'toward-you';
-  if (mov === 'Moving away') return 'away-from-you';
-  return 'neutral'; // Passing by / Unknown
-});
+  animationDirection = computed(() => {
+    const mov = this.movement();
+    if (mov === 'Getting closer') return 'toward-you';
+    if (mov === 'Moving away') return 'away-from-you';
+    return 'neutral'; // Passing by / Unknown
+  });
 
   ngOnInit(): void {
     console.log('🛰️ ISS Component iniciado');
     this.issService.startTracking();
-    // No forzamos getUserLocation() aquí para no reabrir prompts cuando estamos en Global View
-    /*  setTimeout(() => {
-        const issPageElement = document.querySelector('.iss-page');
-        if (issPageElement) {
-          issPageElement.addEventListener('scroll', () => {
-            const scrollPosition = issPageElement.scrollTop;
-            console.log('ISS page internal scroll:', scrollPosition);
-            this.showScrollButton.set(scrollPosition > 200);
-          });
-        }
-      }, 100);*/
+
+    /* this.scrollTimer = setTimeout(() => {
+       this.issPageEl = document.querySelector('.iss-page') as HTMLElement | null || undefined;
+       this.issPageEl?.addEventListener('scroll', this.onScroll, { passive: true });
+     }, 100);*/
     this.scrollTimer = setTimeout(() => {
-      this.issPageEl = document.querySelector('.iss-page') as HTMLElement | null || undefined;
-      this.issPageEl?.addEventListener('scroll', this.onScroll, { passive: true });
+      this.scrollContainer =
+        document.querySelector('.main-content') as HTMLElement
+        ?? (document.querySelector('.iss-page') as HTMLElement | null)
+        ?? undefined;
+
+      this.scrollContainer?.addEventListener('scroll', this.onScroll, { passive: true });
     }, 100);
 
   }
@@ -168,8 +167,10 @@ animationDirection = computed(() => {
        issPageElement.removeEventListener('scroll', this.handleScroll);
      }*/
     if (this.scrollTimer) clearTimeout(this.scrollTimer);
-    this.issPageEl?.removeEventListener('scroll', this.onScroll);
-    this.issPageEl = undefined;
+    /* this.issPageEl?.removeEventListener('scroll', this.onScroll);
+     this.issPageEl = undefined;*/
+    this.scrollContainer?.removeEventListener('scroll', this.onScroll);
+    this.scrollContainer = undefined;
   }
 
   onWorldMapLoad(evt: any): void {
@@ -238,6 +239,10 @@ animationDirection = computed(() => {
   }
 
   scrollToTop(): void {
-  this.issPageEl?.scrollTo({ top: 0, behavior: 'smooth' });
+    if (this.scrollContainer) {
+      this.scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
 }

@@ -428,7 +428,8 @@
 // ===== SCROLL TO TOP =====
 .scroll-to-top {
   position: fixed;
-  bottom: $scroll-btn-bottom;
+ // bottom: $scroll-btn-bottom;
+  bottom: calc(80px + var(--safe-bottom, 0px) + 12px); /* por encima del nav */
   right: 1rem;
   background: rgba($primary-cyan, 0.9);
   color: #0a192f;
@@ -442,7 +443,8 @@
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  z-index: 1000;
+//  z-index: 1000;
+  z-index: 1105;
 
   &:hover {
     transform: translateY(-2px);
