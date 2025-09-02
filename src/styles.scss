@@ -43,12 +43,30 @@ app-map .mobile-pass-info {
   min-height: -webkit-fill-available;
 }*/
 
+
+/* === VARIABLES VIEWPORT DINÁMICAS === */
+:root {
+  --real-vh: 1vh;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+
 /* === BOTTOM NAV SAFE AREA === */
 .app-bottom-nav,
 app-bottom-nav,
 .bottom-nav,
-bottom-nav {
+/*bottom-nav {
   padding-bottom: env(safe-area-inset-bottom);
+}*/
+bottom-nav {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  z-index: 1001 !important;
+  height: 80px !important;
+  padding-bottom: var(--safe-bottom) !important;
 }
 
 /* === LOCATION REQUIRED STATE === */
@@ -59,32 +77,41 @@ body.location-required .bottom-nav .nav-item:not([href*="/home"]) {
 
 /* === ANIMACIONES GLOBALES (nuevas) === */
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes pulse {
-  0%, 100% { 
-    transform: scale(1); 
-    opacity: 1; 
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
   }
-  50% { 
-    transform: scale(1.1); 
-    opacity: 0.7; 
+
+  50% {
+    transform: scale(1.1);
+    opacity: 0.7;
   }
 }
 
 @keyframes slideInUp {
-  from { 
-    opacity: 0; 
-    transform: translateY(20px); 
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-.spinning { 
-  animation: spin 1s linear infinite; 
+.spinning {
+  animation: spin 1s linear infinite;
 }
