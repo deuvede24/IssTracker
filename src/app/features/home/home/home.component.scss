@@ -1,6 +1,7 @@
 @use '../../../shared/index' as *;
 .simple-home {
   height: 100vh;
+  height: calc(var(--real-vh) * 100);
   overflow-y: auto;
   padding: 0 1rem 100px;
   background: transparent;

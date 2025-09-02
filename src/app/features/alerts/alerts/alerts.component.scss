@@ -1,7 +1,8 @@
 // src/app/features/alerts/alerts.component.scss
 
 .alerts-page {
-  height: 100dvh;
+  height: 100vh;
+  height: calc(var(--real-vh) * 100);
   overflow-y: auto;
   padding: 1rem 1rem 100px;
   background: transparent;
@@ -272,6 +273,11 @@
       font-size: 0.8rem;
       color: rgba(255,255,255,0.8);
       text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+     .hint {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.8);
       letter-spacing: 0.5px;
     }
   }

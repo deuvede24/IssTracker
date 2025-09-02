@@ -2,7 +2,8 @@
 .mobile-map-page {
   display: flex;
   flex-direction: column;
-  height: 100dvh;
+  height: 100vh;
+  height: calc(var(--real-vh) * 100);
   background: #f8f9fa;
   padding-bottom: 80px;
 
@@ -20,8 +21,8 @@
   min-height: 56px;
 
   .mobile-title {
-    font-size: 1.1rem;
-    font-weight: 600;
+    font-size: 1.6rem !important;
+    font-weight: 700;
     text-align: center;
     flex: 1;
     margin: 0 1rem;
@@ -40,8 +41,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 48px!important;
+  height: 48px!important;
+  min-width: 48px;
+  min-height: 48px;
 
   &:hover {
     background: rgba(255, 255, 255, 0.25);
@@ -49,7 +52,7 @@
   }
 
   i {
-    font-size: 1rem;
+    font-size: 1.2rem;
   }
 }
 

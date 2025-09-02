@@ -4,12 +4,19 @@
 <head>
   <meta charset="utf-8">
   <title>IssTracker</title>
-  <!-- Placeholder para el token 
-  <script id="inject-env">
-    window.env = {};
-  </script>-->
+  <script>
+    function updateViewportVars() {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--real-vh', vh + 'px');
+    }
+    updateViewportVars();
+    window.addEventListener('resize', updateViewportVars);
+    window.addEventListener('orientationchange', function () {
+      setTimeout(updateViewportVars, 200);
+    });
+  </script>
   <base href="/">
- <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <!-- iOS modo app cuando la instalen -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
