@@ -1,5 +1,5 @@
 // src/app/features/iss/iss.component.ts
-import { Component, OnInit, OnDestroy, computed, inject, CUSTOM_ELEMENTS_SCHEMA, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, computed, inject, CUSTOM_ELEMENTS_SCHEMA, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NgxMapboxGLModule } from 'ngx-mapbox-gl';
@@ -17,22 +17,23 @@ import { bearingToCardinal } from '../../utils/geodesy';
   templateUrl: './iss.component.html',
   styleUrls: ['./iss.component.scss']
 })
-export class IssComponent implements OnInit, OnDestroy {
+export class IssComponent implements OnInit, OnDestroy, AfterViewInit {
   private issService = inject(ISSSimpleService);
   private locationService = inject(LocationSimpleService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
-  private scrollTimer?: ReturnType<typeof setTimeout>;
-  private issPageEl?: HTMLElement;
-  private scrollContainer?: HTMLElement;
+  //private scrollTimer?: ReturnType<typeof setTimeout>;
+  //private issPageEl?: HTMLElement;
+//  private scrollContainer?: HTMLElement;
+  private onWindowScroll?: (e: Event) => void;
 
   private previousDistance?: number;
 
-  private onScroll = (e: Event) => {
+ /* private onScroll = (e: Event) => {
     const el = e.target as HTMLElement;
     this.showScrollButton.set(el.scrollTop > 200);
-  };
+  };*/
 
 
   // Datos
@@ -148,29 +149,66 @@ export class IssComponent implements OnInit, OnDestroy {
        this.issPageEl = document.querySelector('.iss-page') as HTMLElement | null || undefined;
        this.issPageEl?.addEventListener('scroll', this.onScroll, { passive: true });
      }, 100);*/
-    this.scrollTimer = setTimeout(() => {
-      this.scrollContainer =
-        document.querySelector('.main-content') as HTMLElement
-        ?? (document.querySelector('.iss-page') as HTMLElement | null)
-        ?? undefined;
-
-      this.scrollContainer?.addEventListener('scroll', this.onScroll, { passive: true });
-    }, 100);
-
+    /*   this.scrollTimer = setTimeout(() => {
+         this.scrollContainer =
+           document.querySelector('.main-content') as HTMLElement
+           ?? (document.querySelector('.iss-page') as HTMLElement | null)
+           ?? undefined;
+   
+         this.scrollContainer?.addEventListener('scroll', this.onScroll, { passive: true });
+       }, 100);*/
   }
+  /*ngAfterViewInit(): void {
+    // Debug múltiples contenedores
+    const mainContent = document.querySelector('.main-content') as HTMLElement;
+    const body = document.body;
+    const documentElement = document.documentElement;
+    
+    console.log('main-content:', mainContent?.scrollHeight, mainContent?.clientHeight);
+    console.log('body:', body.scrollHeight, body.clientHeight);
+    console.log('html:', documentElement.scrollHeight, documentElement.clientHeight);
+  
+    // Probar window scroll como fallback
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      console.log('WINDOW scroll detectado:', scrollTop);
+      this.showScrollButton.set(scrollTop > 100);
+    }, { passive: true });
+  }*/
 
+  ngAfterViewInit(): void {
+    this.onWindowScroll = () => {
+      const top = window.scrollY || document.documentElement.scrollTop;
+      this.showScrollButton.set(top > 100);
+    };
+    window.addEventListener('scroll', this.onWindowScroll, { passive: true });
+    console.log('✅ Scroll-to-top: usando window');
+  }
+  /* ngOnDestroy(): void {
+     console.log('🛰️ ISS Component destruido');
+     this.issService.stopTracking();
+  
+     if (this.scrollTimer) clearTimeout(this.scrollTimer);
+    
+     this.scrollContainer?.removeEventListener('scroll', this.onScroll);
+     this.scrollContainer = undefined;
+   }*/
+  /*  ngOnDestroy(): void {
+      console.log('🛰️ ISS Component destruido');
+      this.issService.stopTracking();
+  
+      if (this.onScroll && this.scrollContainer) {
+        this.scrollContainer.removeEventListener('scroll', this.onScroll);
+      }
+    }*/
   ngOnDestroy(): void {
     console.log('🛰️ ISS Component destruido');
     this.issService.stopTracking();
-    /* const issPageElement = document.querySelector('.iss-page');
-     if (issPageElement) {
-       issPageElement.removeEventListener('scroll', this.handleScroll);
-     }*/
-    if (this.scrollTimer) clearTimeout(this.scrollTimer);
-    /* this.issPageEl?.removeEventListener('scroll', this.onScroll);
-     this.issPageEl = undefined;*/
-    this.scrollContainer?.removeEventListener('scroll', this.onScroll);
-    this.scrollContainer = undefined;
+
+    if (this.onWindowScroll) {
+      window.removeEventListener('scroll', this.onWindowScroll);
+      this.onWindowScroll = undefined;
+    }
   }
 
   onWorldMapLoad(evt: any): void {
@@ -238,11 +276,14 @@ export class IssComponent implements OnInit, OnDestroy {
     return 'Ocean';
   }
 
+  /*  scrollToTop(): void {
+      if (this.scrollContainer) {
+        this.scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }*/
   scrollToTop(): void {
-    if (this.scrollContainer) {
-      this.scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }
