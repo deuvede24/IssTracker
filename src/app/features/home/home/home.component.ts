@@ -10,7 +10,7 @@ import { LocationSimpleService } from '../../../services/location-simple.service
 import { ISSPassesService } from '../../../services/iss-passes.service';
 import { NotificationService } from '../../../services/notification.service';
 import { isNightLocal } from '../../../shared/time-window.util';
-
+import { ToastService } from '../../../services/toast.service';
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -24,6 +24,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   private passesService = inject(ISSPassesService);
   private notificationService = inject(NotificationService);
   private router = inject(Router);
+  private toast = inject(ToastService);
 
   realISSPosition = this.issService.position;
   notificationsEnabled = computed(() => this.notificationService.isEnabled);
@@ -171,6 +172,10 @@ export class HomeComponent implements OnInit, OnDestroy {
 
       if (!exhausted) {
         await this.locationService.getUserLocation();
+        const userLocation = this.locationService.location();
+        if (userLocation && !userLocation.detected) {
+          this.toast.info(`Using approximate location (${userLocation.city})`);
+        }
       } else {
         // Mostrar directamente Home simplificada, sin parpadeos
         this.loadedOnce.set(true);
@@ -213,7 +218,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     document.body.classList.remove('location-required');
     this.issService.stopTracking();
   }
- 
+
   // ==== Navegación / acciones ====
   goToMapWithPass(pass: PassHome) {
     this.router.navigate(['/map'], { queryParams: { passId: pass.id } });
@@ -290,6 +295,9 @@ export class HomeComponent implements OnInit, OnDestroy {
       await this.locationService.retryWithIPOnly();
       const userLocation = this.locationService.location();
       if (userLocation && userLocation.latitude !== 0 && userLocation.longitude !== 0) {
+        if (!userLocation.detected) {
+          this.toast.info(`Using approximate location (${userLocation.city})`);
+        }
         await this.passesService.getRealPasses(userLocation.latitude, userLocation.longitude);
         await this.issService.getCurrentPosition();
       }
@@ -309,6 +317,9 @@ export class HomeComponent implements OnInit, OnDestroy {
       await this.locationService.retryWithIPOnly();
       const userLocation = this.locationService.location();
       if (userLocation) {
+        if (!userLocation.detected) {
+          this.toast.info(`Using approximate location (${userLocation.city})`);
+        }
         await this.passesService.getRealPasses(userLocation.latitude, userLocation.longitude);
         await this.issService.getCurrentPosition();
       }
