@@ -1,6 +1,6 @@
 // src/app/features/map/map.component.ts - FINAL CON COORDENADAS DINÁMICAS
 
-import { Component, OnInit, signal, computed, CUSTOM_ELEMENTS_SCHEMA, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, signal, computed, CUSTOM_ELEMENTS_SCHEMA, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgxMapboxGLModule } from 'ngx-mapbox-gl';
 import mapboxgl from 'mapbox-gl';
@@ -20,11 +20,13 @@ import { LocalReferenceService } from '../../services/local-reference.service';
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss'],
 })
-export class MapComponent implements OnInit {
+export class MapComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private passesService = inject(ISSPassesService);
   private locationService = inject(LocationSimpleService);
   private localReference = inject(LocalReferenceService);
+
+  private onResize?: () => void;
 
   mapboxToken = environment.mapboxToken;
   private map?: mapboxgl.Map;
@@ -97,7 +99,7 @@ export class MapComponent implements OnInit {
     // 🚀 ASEGURAR UBICACIÓN REAL ANTES DE TODO
     try {
       console.log('📍 Verificando ubicación real para mapa...');
-    //  await this.locationService.getUserLocation();
+      //  await this.locationService.getUserLocation();
 
       const userLoc = this.locationService.location();
       console.log('🗺️ Ubicación para mapa:', userLoc);
@@ -114,7 +116,7 @@ export class MapComponent implements OnInit {
       const userLoc = this.locationService.location();
       if (userLoc) {
         console.log('🔍 Cargando pases INMEDIATAMENTE para mapa...');
-       // await this.passesService.getRealPasses(userLoc.latitude, userLoc.longitude);
+        // await this.passesService.getRealPasses(userLoc.latitude, userLoc.longitude);
       }
 
       const availablePasses = this.allPasses();
@@ -235,9 +237,25 @@ export class MapComponent implements OnInit {
 
     console.log(`🎯 Mapa centrado en usuario con zoom ${perfectZoom}`);
   }
+  ngAfterViewInit(): void {
+    let t: any;
+    this.onResize = () => {
+      clearTimeout(t);
+      t = setTimeout(() => {
+        this.map?.resize();
+      }, 120);
+    };
+    window.addEventListener('resize', this.onResize);
+    window.addEventListener('orientationchange', this.onResize);
+  }
 
   ngOnDestroy(): void {
     // Cleanup si es necesario
+    if (this.onResize) {
+      window.removeEventListener('resize', this.onResize);
+      window.removeEventListener('orientationchange', this.onResize);
+      this.onResize = undefined;
+    }
   }
 
   // ===== TUS MÉTODOS ORIGINALES =====
@@ -275,6 +293,7 @@ export class MapComponent implements OnInit {
     } catch (error) {
       console.error('❌ Error creando marcador ISS:', error);
     }
+    setTimeout(() => this.map?.resize(), 100);
   }
 
   startISSFlight() {

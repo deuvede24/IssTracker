@@ -60,6 +60,7 @@
 .mobile-map-container {
   position: relative;
   flex: 1;
+  min-height: 0; 
 }
 
 .mobile-map {
@@ -692,4 +693,8 @@ div:has-text("🛰️") {
       order: 3;
     }
   }
+}
+
+.mapboxgl-canvas {
+  display: block; /* evita espacios por baseline inline */
 }
