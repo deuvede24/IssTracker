@@ -17,7 +17,8 @@
   flex: 1;
   //overflow: hidden;
   position: relative;
-    overflow-y: auto; 
+   // overflow-y: auto; 
+    overflow: visible; 
   padding-bottom: 0; // El bottom nav es fijo
   
 }
