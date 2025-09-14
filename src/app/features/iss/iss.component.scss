@@ -6,7 +6,7 @@
   height: auto;
   min-height: 100vh;
   padding-bottom: calc(100px + var(--safe-bottom, 0px));
-  overflow-y: auto;
+  //overflow-y: auto;
   padding: 0 1rem 100px;
   background: transparent;
   color: white;
@@ -306,7 +306,8 @@
 
 .world-map-container {
   position: relative;
-  height: 40vh;
+  //height: 50vh !important;
+   height: clamp(42vh, 48vh + 2rem, 56vh) !important;
   min-height: $world-map-min-height;
   max-height: $world-map-max-height;
   margin-bottom: 3rem;
