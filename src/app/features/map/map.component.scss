@@ -2,8 +2,8 @@
 .mobile-map-page {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  height: calc(var(--real-vh) * 100);
+  //height: 100vh;
+  height: calc(100vh - 80px);
   background: #f8f9fa;
   //padding-bottom: 80px;
 
@@ -498,8 +498,7 @@ div:has-text("🛰️") {
   padding: 1rem 1rem calc(1.25rem + env(safe-area-inset-bottom, 0px));
   text-align: center;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-   margin-top: auto; // Empuja hacia el bottom
-  flex-shrink: 0; // No se comprime
+  
 }
 
 .pass-header-mobile {
