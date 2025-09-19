@@ -194,28 +194,7 @@ export class SatelliteCalculatorService {
         allPasses = [...pastPasses];
       }
 
-      // 3. Filtrar pases nocturnos
-      //  const nightPasses = allPasses.filter(pass => this.isNightTime(pass.startTime));
-      /*  const nightPasses = allPasses.filter(pass => this.isNightTime(pass.startTime, latitude));
-        console.log(`🌙 Pases nocturnos encontrados: ${nightPasses.length}`);
   
-        if (nightPasses.length > 0) {
-          const finalPasses = nightPasses
-            .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
-            .slice(0, 3);
-  
-          console.log('✅ Usando pases REALES calculados:', finalPasses.length);
-          return finalPasses;
-        } else {
-          // 4. Fallback inteligente si no encuentra nada
-          console.log('🎨 No hay pases nocturnos, usando fallback inteligente...');
-          return this.generateIntelligentFallback(latitude, longitude);
-        }
-  
-      } catch (error) {
-        console.error('❌ Error calculando pases reales:', error);
-        return this.generateIntelligentFallback(latitude, longitude);
-      }*/
       // 3) Devolver TODOS (ordenados). La separación night/day la hace ISSPassesService.
       if (allPasses.length === 0) {
         console.log('🎨 No hay pases calculados, usando fallback inteligente...');
@@ -363,39 +342,7 @@ export class SatelliteCalculatorService {
   /**
    * 🌙 Verificar si es horario nocturno (ampliado)
    */
-  /*private isNightTime(date: Date): boolean {
-    const hour = date.getHours();
-    return hour >= 18 || hour <= 6; // 18:00-06:00
-  }*/
-  /**
-  * 🌙 Verificar si es horario nocturno - VERSIÓN CONSERVADORA
-  * Mantiene rangos amplios, solo ajusta casos extremos
-  */
-  /*private isNightTime(date: Date, latitude: number): boolean {
-    const month = date.getMonth(); // 0-11
-    const hour = date.getHours();
 
-    // Determinar estación según hemisferio
-    const isWinter = latitude < 0 ?
-      (month >= 5 && month <= 7) :     // Jun-Ago sur = invierno
-      (month >= 10 || month <= 1);     // Nov-Feb norte = invierno
-
-    // Casos extremos que necesitan ajuste
-    const isNordic = Math.abs(latitude) > 60; // Más restrictivo para detectar casos extremos
-
-    if (isNordic && isWinter) {
-      // Solo para países muy al norte en invierno (Suecia, Noruega)
-      return hour >= 14 || hour <= 9;
-    }
-
-    if (isWinter) {
-      // Invierno: oscurece más temprano
-      return hour >= 17 || hour <= 6;
-    }
-
-    // Resto de casos (verano, primavera, otoño): mantener tu rango actual
-    return hour >= 18 || hour <= 7;
-  }*/
   private isNightTime(date: Date, latitude: number): boolean {
     return isNightLocal(date, latitude);
   }

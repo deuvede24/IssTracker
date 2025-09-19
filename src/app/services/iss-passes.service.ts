@@ -23,122 +23,6 @@ export class ISSPassesService {
   }
 
   /**
-   * 🛰️ Obtener pases reales usando satellite.js - CON UI INTELIGENTE
-   */
-  /* async getRealPasses(latitude: number, longitude: number): Promise<PassHome[]> {
-     if (!Number.isFinite(latitude) || !Number.isFinite(longitude) ||
-       (latitude === 0 && longitude === 0)) {
-       console.warn('[passes] Invalid location; keeping current cache');
-       return this.realPasses();
-     }
-     try {
-       console.log('🛰️ Calculating REAL passes with satellite.js for:', { latitude, longitude });
- 
-       // Evitar cálculos duplicados
-       if (this.lastFetchLocation &&
-         Math.abs(this.lastFetchLocation.lat - latitude) < 0.01 &&
-         Math.abs(this.lastFetchLocation.lon - longitude) < 0.01) {
-         console.log('📋 Using cached passes');
-         return this.realPasses();
-       }
- 
-       // Calcular pases con satellite.js
-       const calculations = await this.satelliteCalculator.calculatePasses(
-         latitude,
-         longitude,
-         14, // 14 días
-         5  // mínimo 5° elevación
-       );
- 
-       console.log('🔢 REAL satellite.js calculations:', calculations.length);
- 
-       if (calculations.length === 0) {
-         console.log('⚠️ No passes found, using fallback');
-         const fallbackPasses = this.generateRealisticFallback();
-         this.realPasses.set(fallbackPasses);
-         return fallbackPasses;
-       }
- 
-       // Transformar TODOS los pases a formato PassHome
-       const allPasses = calculations.map((calc, index) =>
-         this.transformToPassHome(calc, index, latitude, longitude)
-       );
- 
-       // 🎯 LÓGICA INTELIGENTE: Separar nocturnos vs diurnos
-       const nightPasses = allPasses.filter(pass => this.isNightPass(pass.time));
-       const dayPasses = allPasses.filter(pass => !this.isNightPass(pass.time));
- 
-       console.log(`🌙 REAL night passes: ${nightPasses.length}`);
-       console.log(`☀️ REAL day passes:  ${dayPasses.length}`);
- 
-       let finalPasses: PassHome[];
- 
-       if (nightPasses.length >= 3) {
-         // ✅ Hay suficientes pases nocturnos - PERFECTO
-         finalPasses = nightPasses.slice(0, Math.min(3, nightPasses.length)).map(pass => ({
-           ...pass,
-           viewable: true,
-           reason: 'Perfect night viewing'
-         }));
-         console.log('🌙 Using 3 REAL night passes');
- 
-       } else if (nightPasses.length > 0) {
-         // ⚠️ Pocos nocturnos - combinar con mejores diurnos
-         const brightDayPasses = dayPasses
-           .filter(pass => this.isBrightDayPass(pass))
-           .slice(0, 3 - nightPasses.length);
- 
-         finalPasses = [
-           ...nightPasses.map(pass => ({
-             ...pass,
-             viewable: true,
-             reason: 'Perfect night viewing'
-           })),
-           ...brightDayPasses.map(pass => ({
-             ...pass,
-             viewable: false,
-             reason: 'Daylight pass - not visible'
-           }))
-         ];
-         console.log(`🌓 Combining ${nightPasses.length} night + ${brightDayPasses.length} day`);
- 
-       } else {
-         // ❌ No hay nocturnos esta semana - mostrar los mejores diurnos + info
-         finalPasses = dayPasses.slice(0, 3).map(pass => ({
-           ...pass,
-           viewable: false,
-           reason: 'Daylight pass - not visible'
-         }));
-         console.log('☀️ Only day passes this week');
-       }
-       // 🎯 ORDENAR CRONOLÓGICAMENTE
-       finalPasses = finalPasses.sort((a, b) =>
-         new Date(a.time).getTime() - new Date(b.time).getTime()
-       );
- 
-       try {
-         localStorage.setItem('last-valid-passes', JSON.stringify(finalPasses.slice(0, 3)));
-       } catch (e) {
-         console.warn('[passes] Could not persist cache:', e);
-       }
- 
-       this.realPasses.set(finalPasses);
-       this.lastFetchLocation = { lat: latitude, lon: longitude };
- 
-       console.log('✅ REAL passes calculated with satellite.js:', finalPasses.length);
-       return finalPasses;
- 
-     } catch (error) {
-       console.error('❌ Error calculating REAL passes:', error);
- 
-       // Fallback solo si satellite.js falla completamente
-       const fallbackPasses = this.generateRealisticFallback();
-       this.realPasses.set(fallbackPasses);
-       return fallbackPasses;
-     }
-   }*/
-
-  /**
    * 🛰️ Obtener pases reales usando satellite.js
    * - Evita recálculos si estamos en la misma zona y los datos son "frescos" (<2h) 🆕
    * - Guarda una copia ligera en localStorage (para fallback visual) ✅
@@ -265,51 +149,6 @@ export class ISSPassesService {
   /**
    * 🔄 Transformar cálculo satellite.js a PassHome
    */
-  /* private transformToPassHome(
-     calculation: PassCalculation,
-     index: number,
-     userLat: number,
-     userLon: number
-   ): PassHome {
- 
-     // Obtener referencias de Barcelona según azimut
-     const fromLandmark = this.getLandmarkFromAzimuth(calculation.startAzimuth);
-     const toLandmark = this.getLandmarkFromAzimuth(calculation.endAzimuth);
- 
-     // Crear dirección cardinal
-     const fromCardinal = bearingToCardinal(calculation.startAzimuth);
-     const toCardinal = bearingToCardinal(calculation.endAzimuth);
-     const direction = `${fromCardinal} → ${toCardinal}`;
- 
-     // Emoji de brújula
-     const compass = this.getCompassEmoji(calculation.startAzimuth, calculation.endAzimuth);
- 
-     // Descripción de brillo
-     const brightness = this.getBrightnessDescription(calculation.brightness);
- 
-     // Descripción de altitud
-     const altitude = this.getAltitudeDescription(calculation.maxElevation);
- 
-     // Calcular tiempo restante
-     const timeToPass = this.calculateTimeToPass(calculation.startTime);
- 
-     return {
-       id: `satellite-${index + 1}`,
-       time: calculation.startTime,
-       duration: calculation.duration,
-       from: fromLandmark,
-       to: toLandmark,
-       altitude,
-       brightness,
-       timeToPass,
-       direction,
-       compass,
-       azimuth: {
-         appear: Math.round(calculation.startAzimuth),
-         disappear: Math.round(calculation.endAzimuth)
-       }
-     };
-   }*/
   private transformToPassHome(
     calculation: PassCalculation,
     index: number,
@@ -365,18 +204,6 @@ export class ISSPassesService {
   /**
    * 🌙 Verificar si es pase nocturno
    */
-  /* private isNightPass(time: Date): boolean {
-     const hour = time.getHours();
-     return hour >= 18 || hour <= 7; // Entre 16:00 y 07:00
-   }*/
-
-  /*private isNightPass(time: Date): boolean {
-    const hour = time.getHours();
-    console.log(`🔍 Evaluando pase: ${time.toLocaleTimeString()}, hour: ${hour}`);
-    const isNight = hour >= 18 || hour <= 7;
-    console.log(`🔍 Resultado isNight: ${isNight}`);
-    return isNight;
-  }*/
   private isNightPass(time: Date, latitude: number): boolean {
     const isNight = isNightLocal(time, latitude);
     console.log(`Evaluando pase: ${time.toLocaleTimeString()}, lat: ${latitude.toFixed(2)}, isNight: ${isNight}`);
@@ -454,58 +281,6 @@ export class ISSPassesService {
   /**
    * 🔄 Fallback con pases realistas (solo si satellite.js falla)
    */
-  /* private generateRealisticFallback(): PassHome[] {
-     const now = Date.now();
- 
-     return [
-       {
-         id: 'fallback-1',
-         time: new Date(now + 3 * 3600000),
-         duration: 6,
-         from: 'Tibidabo',
-         to: 'Barceloneta',
-         altitude: 'High in the sky',
-         brightness: 'Very bright ⭐⭐',
-         timeToPass: '3h 12min',
-         direction: 'Northwest → Southeast',
-         compass: '↘️',
-         azimuth: { appear: 315, disappear: 135 },
-         viewable: true,
-         reason: 'Fallback pass'
-       },
-       {
-         id: 'fallback-2',
-         time: new Date(now + 12 * 3600000),
-         duration: 4,
-         from: 'Hospital Clínic',
-         to: 'Sagrada Família',
-         altitude: 'Medium altitude',
-         brightness: 'Bright ⭐',
-         timeToPass: '12h 45min',
-         direction: 'Southwest → Northeast',
-         compass: '↗️',
-         azimuth: { appear: 225, disappear: 45 },
-         viewable: true,
-         reason: 'Fallback pass'
-       },
-       {
-         id: 'fallback-3',
-         time: new Date(now + 25 * 3600000),
-         duration: 5,
-         from: 'Collserola',
-         to: 'Montjuïc',
-         altitude: 'High in the sky',
-         brightness: 'Very bright ⭐⭐',
-         timeToPass: '1 day and 1h',
-         direction: 'North → South',
-         compass: '↓',
-         azimuth: { appear: 0, disappear: 180 },
-         viewable: true,
-         reason: 'Fallback pass'
-       }
-     ];
-   }*/
-
   private generateRealisticFallback(): PassHome[] {
     const cached = localStorage.getItem('last-valid-passes');
     if (!cached) return [];

@@ -30,55 +30,11 @@ export class ISSSimpleService {
   }
 
   /**
-   * 🛰️ Obtener posición actual de ISS (WhereTheISS.at)
+   * 🛰️ Obtener posición actual de ISS 
+   *  🎯 MÚLTIPLES FUENTES - Probamos hasta que una funcione
    */
-  /*  async getCurrentPosition(): Promise<ISSCurrentPosition> {
-      try {
-        console.log('🛰️ Obteniendo posición actual de ISS...');
-        
-        const response = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
-        
-        if (!response.ok) {
-          throw new Error(`API Error: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        const position: ISSCurrentPosition = {
-          latitude: data.latitude,
-          longitude: data.longitude,
-          altitude: data.altitude,
-          velocity: data.velocity,
-          timestamp: data.timestamp,
-          visibility: data.visibility
-        };
-  
-        // Actualizar signal
-        this.currentPosition.set(position);
-        
-        console.log('✅ Posición ISS:', position);
-        return position;
-        
-      } catch (error) {
-        console.error('❌ Error obteniendo ISS:', error);
-        
-        // Fallback simulado
-        const fallback: ISSCurrentPosition = {
-          latitude: 25.7617,
-          longitude: -80.1918,
-          altitude: 408,
-          velocity: 27600,
-          timestamp: Math.floor(Date.now() / 1000),
-          visibility: 'daylight'
-        };
-        
-        this.currentPosition.set(fallback);
-        return fallback;
-      }
-    }*/
-
   async getCurrentPosition(): Promise<ISSCurrentPosition> {
-    // 🎯 MÚLTIPLES FUENTES - Probamos hasta que una funcione
+
 
     const apiSources = [
 
@@ -174,25 +130,6 @@ export class ISSSimpleService {
   /**
    * 🔄 Iniciar tracking automático (cada 5 segundos)
    */
-  /*startTracking(): void {
-    if (this.isTracking) return;
-
-    this.isTracking = true;
-    console.log('🔄 Iniciando tracking de ISS...');
-
-    // Primera llamada inmediata
-    this.getCurrentPosition();
-
-    // Luego cada 5 segundos
-    const interval = setInterval(async () => {
-      if (!this.isTracking) {
-        clearInterval(interval);
-        return;
-      }
-
-      await this.getCurrentPosition();
-    }, 5000);
-  }*/
   startTracking(): void {
     if (this.isTracking) return;
     this.isTracking = true;
@@ -213,10 +150,6 @@ export class ISSSimpleService {
   /**
    * ⏹️ Parar tracking
    */
-  /* stopTracking(): void {
-     this.isTracking = false;
-     console.log('⏹️ Tracking de ISS detenido');
-   }*/
   stopTracking(): void {
     this.isTracking = false;
     if (this.pollId !== null) {
@@ -272,5 +205,5 @@ export class ISSSimpleService {
   private toDegrees(radians: number): number {
     return radians * (180 / Math.PI);
   }
-  
+
 }
