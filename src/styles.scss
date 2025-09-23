@@ -130,3 +130,32 @@ app-root, app-component, .app-shell, .app-container, main {
   height: auto !important;
   overflow: visible !important;
 }
+
+/* ===== PWA standalone fixes: viewport & scroll ===== */
+@media (display-mode: standalone), (display-mode: window-controls-overlay) {
+  :root {
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --tabbar-h: 80px;     /* tu bottom nav fijo */
+    --header-min: 56px;   /* min-height de .mobile-header */
+  }
+
+  /* En app instalada no queremos "scroll fantasma" del body */
+  html, body {
+    height: 100dvh !important;    /* viewport real en móviles modernos */
+    overflow: hidden !important;  /* evita la franja azul y el corte de abajo */
+  }
+
+  /* El header suma la zona segura superior si existe */
+  .mobile-header {
+    padding-top: max(var(--safe-top), 0.75rem) !important;
+    min-height: calc(var(--header-min) + var(--safe-top)) !important;
+  }
+
+  /* La página de mapa ocupa exactamente la altura visible menos la tabbar */
+  .mobile-map-page {
+    /* 100dvh = altura real del dispositivo
+       restamos la tabbar y la safe-area inferior si la hay */
+    height: calc(100dvh - (var(--tabbar-h) + var(--safe-bottom))) !important;
+  }
+}

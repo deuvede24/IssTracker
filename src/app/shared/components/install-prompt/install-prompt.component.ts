@@ -20,7 +20,7 @@ export class InstallPromptComponent implements OnInit {
   
   private deferredPrompt: BeforeInstallPromptEvent | null = null;
   private readonly DISMISSED_KEY = 'iss-tracker-install-dismissed';
-  private readonly INSTALL_PROMPT_DELAY = 30000; // 30 seconds
+  private readonly INSTALL_PROMPT_DELAY = 7000; // 7 seconds
   
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
   
