@@ -1,0 +1,143 @@
+<!-- Android Install Banner -->
+<div 
+  *ngIf="showAndroidPrompt" 
+  class="install-banner android-banner position-fixed bottom-0 start-0 end-0 bg-primary text-white shadow-lg">
+  
+  <div class="container-fluid p-3">
+    <div class="row align-items-center">
+      <div class="col-2">
+        <i class="bi bi-phone text-info" style="font-size: 2rem;"></i>
+      </div>
+      <div class="col-7">
+        <div class="fw-bold">Install ISS Tracker</div>
+        <small class="opacity-75">Get the full app experience</small>
+      </div>
+      <div class="col-3 d-flex gap-2">
+        <button 
+          class="btn btn-sm btn-outline-light"
+          (click)="dismissPrompt()"
+          style="font-size: 0.75rem;">
+          Later
+        </button>
+        <button 
+          class="btn btn-sm btn-light text-primary fw-bold"
+          (click)="installApp()"
+          style="font-size: 0.75rem;">
+          Install
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- iOS Install Guide Modal -->
+<div 
+  *ngIf="showIOSGuide"
+  class="modal d-block"
+  style="background-color: rgba(0,0,0,0.8);"
+  (click)="closeIOSGuide()">
+  
+  <div class="modal-dialog modal-dialog-centered modal-lg mx-2" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-apple me-2"></i>
+          Install ISS Tracker on iPhone
+        </h5>
+        <button 
+          type="button" 
+          class="btn-close btn-close-white" 
+          (click)="closeIOSGuide()">
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <p class="text-center mb-4">
+          <strong>Get ISS Tracker as a native app on your iPhone!</strong>
+        </p>
+        
+        <!-- Step by step guide -->
+        <div class="row">
+          <div class="col-12">
+            <div class="d-flex align-items-start mb-3">
+              <span class="badge bg-primary rounded-circle me-3 p-2" style="font-size: 1rem;">1</span>
+              <div>
+                <strong>Tap the Share button</strong>
+                <div class="text-muted">
+                  Look for <i class="bi bi-share"></i> in Safari's toolbar (bottom of screen)
+                </div>
+              </div>
+            </div>
+            
+            <div class="d-flex align-items-start mb-3">
+              <span class="badge bg-primary rounded-circle me-3 p-2" style="font-size: 1rem;">2</span>
+              <div>
+                <strong>Find "Add to Home Screen"</strong>
+                <div class="text-muted">
+                  Scroll down in the share menu and tap 
+                  <i class="bi bi-plus-square"></i> "Add to Home Screen"
+                </div>
+              </div>
+            </div>
+            
+            <div class="d-flex align-items-start mb-3">
+              <span class="badge bg-primary rounded-circle me-3 p-2" style="font-size: 1rem;">3</span>
+              <div>
+                <strong>Confirm installation</strong>
+                <div class="text-muted">
+                  Tap "Add" in the top-right corner
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="alert alert-info mt-4">
+          <i class="bi bi-info-circle me-2"></i>
+          <strong>The app will appear on your home screen and work offline!</strong>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button 
+          type="button" 
+          class="btn btn-primary w-100" 
+          (click)="closeIOSGuide()">
+          Got it!
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- iOS Install Banner (Alternative compact) -->
+<div 
+  *ngIf="showIOSBanner" 
+  class="install-banner ios-banner position-fixed bottom-0 start-0 end-0 bg-dark text-white shadow-lg">
+  
+  <div class="container-fluid p-3">
+    <div class="row align-items-center">
+      <div class="col-2">
+        <i class="bi bi-apple text-info" style="font-size: 2rem;"></i>
+      </div>
+      <div class="col-7">
+        <div class="fw-bold">Install on iPhone</div>
+        <small class="opacity-75">Tap Share → Add to Home Screen</small>
+      </div>
+      <div class="col-3 d-flex gap-2 justify-content-end">
+        <button 
+          class="btn btn-sm btn-outline-light"
+          (click)="dismissPrompt()"
+          style="font-size: 0.7rem;">
+          Later
+        </button>
+        <button 
+          class="btn btn-sm btn-info text-dark fw-bold"
+          (click)="showIOSInstructions()"
+          style="font-size: 0.7rem;">
+          How?
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

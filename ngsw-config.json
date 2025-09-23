@@ -1,0 +1,113 @@
+{
+  "$schema": "./node_modules/@angular/service-worker/config/schema.json",
+  "index": "/index.html",
+  "assetGroups": [
+    {
+      "name": "app",
+      "installMode": "prefetch",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": [
+          "/",
+          "/index.html",
+          "/*.css",
+          "/*.js",
+          "/favicon.ico"
+        ]
+      }
+    },
+    {
+      "name": "bootstrap-icons",
+      "installMode": "prefetch",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": [
+          "/media/bootstrap-icons*.woff2",
+          "/media/bootstrap-icons*.woff"
+        ]
+      }
+    },
+    {
+      "name": "assets",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": [
+          "/assets/**",
+          "/*.png",
+          "/*.jpg",
+          "/*.jpeg",
+          "/*.svg",
+          "/*.webp",
+          "/icons/**",
+          "/media/*.png",
+          "/media/*.jpg",
+          "/media/*.svg",
+          "/media/*.ico"
+        ]
+      }
+    }
+  ],
+  "dataGroups": [
+    {
+      "name": "iss-now",
+      "urls": [
+        "https://api.wheretheiss.at/**"
+      ],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "timeout": "3s",
+        "maxSize": 30,
+        "maxAge": "5m"
+      }
+    },
+    {
+      "name": "proxy-apis",
+      "urls": [
+        "/api/**"
+      ],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "timeout": "3s",
+        "maxSize": 10,
+        "maxAge": "5m"
+      }
+    },
+    {
+      "name": "tle",
+      "urls": [
+        "https://tle.ivanstanojevic.me/**",
+        "https://celestrak.org/**",
+        "https://celestrak.com/**"
+      ],
+      "cacheConfig": {
+        "strategy": "performance",
+        "maxSize": 15,
+        "maxAge": "1h"
+      }
+    },
+    {
+      "name": "ipapi",
+      "urls": [
+        "https://ipapi.co/**"
+      ],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "timeout": "5s",
+        "maxSize": 10,
+        "maxAge": "24h"
+      }
+    },
+    {
+      "name": "mapbox-tiles",
+      "urls": [
+        "https://api.mapbox.com/**"
+      ],
+      "cacheConfig": {
+        "strategy": "performance",
+        "maxSize": 50,
+        "maxAge": "2h"
+      }
+    }
+  ]
+}
