@@ -1,0 +1,125 @@
+.install-banner {
+  animation: slideUp 0.3s ease-out;
+  border-top: 2px solid rgba(255,255,255,0.2);
+  z-index: 1060;
+}
+
+.android-banner {
+  background: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%);
+}
+
+.ios-banner {
+  background: linear-gradient(135deg, #212529 0%, #495057 100%);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal {
+  display: block !important;
+}
+
+// Responsive adjustments for mobile
+@media (max-width: 576px) {
+  .modal-dialog {
+    margin: 1rem;
+  }
+  
+  .install-banner .col-3 {
+    flex-direction: column;
+    gap: 0.25rem !important;
+  }
+  
+  .install-banner button {
+    font-size: 0.65rem !important;
+    padding: 0.25rem 0.5rem !important;
+  }
+  
+  .install-banner .fw-bold {
+    font-size: 0.9rem;
+  }
+  
+  .install-banner small {
+    font-size: 0.7rem;
+  }
+}
+
+// Extra small screens (phones in portrait)
+@media (max-width: 400px) {
+  .install-banner {
+    .col-2 i {
+      font-size: 1.5rem !important;
+    }
+    
+    .col-7 {
+      .fw-bold {
+        font-size: 0.85rem;
+      }
+      small {
+        font-size: 0.65rem;
+      }
+    }
+    
+    .col-3 {
+      .btn {
+        font-size: 0.6rem !important;
+        padding: 0.2rem 0.4rem !important;
+      }
+    }
+  }
+}
+
+// Modal improvements for mobile
+.modal-content {
+  .modal-header {
+    .modal-title {
+      font-size: 1.1rem;
+      
+      @media (max-width: 576px) {
+        font-size: 1rem;
+      }
+    }
+  }
+  
+  .modal-body {
+    .badge {
+      min-width: 32px;
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    @media (max-width: 576px) {
+      padding: 1rem;
+      
+      .badge {
+        min-width: 28px;
+        min-height: 28px;
+        font-size: 0.9rem !important;
+      }
+    }
+  }
+}
+
+// Ensure banner doesn't interfere with bottom navigation
+.install-banner {
+  margin-bottom: env(safe-area-inset-bottom, 0);
+  
+  // Adjust for your bottom nav height
+  //bottom: 60px; // Adjust this based on your bottom nav height
+    bottom: 90px; 
+  
+  @media (max-width: 576px) {
+  //  bottom: 70px; // May need adjustment for mobile bottom nav
+    bottom: 95px;
+  }
+}
