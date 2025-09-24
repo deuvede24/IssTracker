@@ -708,6 +708,25 @@ div:has-text("🛰️") {
 /* ===== Fix franja azul en PWA standalone ===== */
 @media (display-mode: standalone), (display-mode: window-controls-overlay) {
   .mobile-map-page {
-    height: calc(100dvh - 80px) !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 80px; /* altura bottom nav */
+    height: auto !important;
+  }
+
+  .mobile-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .mobile-map-container {
+    position: absolute;
+    top: 56px; /* altura header */
+    left: 0;
+    right: 0;
+    bottom: 0;
   }
 }
