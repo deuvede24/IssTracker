@@ -704,3 +704,10 @@ div:has-text("🛰️") {
 .mapboxgl-canvas {
   display: block; /* evita espacios por baseline inline */
 }
+
+/* ===== Fix franja azul en PWA standalone ===== */
+@media (display-mode: standalone), (display-mode: window-controls-overlay) {
+  .mobile-map-page {
+    height: calc(100dvh - 80px) !important;
+  }
+}
