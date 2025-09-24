@@ -56,6 +56,38 @@ export class NotificationService {
     }
 
     // 🔑 GESTIÓN DE PERMISOS
+  /*  async requestPermissions(): Promise<boolean> {
+        if (!('Notification' in window)) {
+            console.log('🔔 Notificaciones no soportadas');
+            return false;
+        }
+
+        if (Notification.permission === 'granted') {
+            this.settings.update(s => ({ ...s, enabled: true }));
+            this.saveSettings();
+            return true;
+        }
+
+        if (Notification.permission === 'default') {
+            const permission = await Notification.requestPermission();
+            console.log('🔔 Permisos solicitados:', permission);
+
+            const granted = permission === 'granted';
+            this.settings.update(s => ({ ...s, enabled: granted }));
+            this.saveSettings();
+
+            if (granted) {
+                this.showWelcomeNotification();
+            }
+
+            return granted;
+        }
+
+        // Permisos denegados
+        return false;
+    }*/
+
+           // 🔑 GESTIÓN DE PERMISOS
     async requestPermissions(): Promise<boolean> {
         if (!('Notification' in window)) {
             console.log('🔔 Notificaciones no soportadas');
@@ -86,6 +118,7 @@ export class NotificationService {
         // Permisos denegados
         return false;
     }
+
 
     private checkInitialPermissions(): void {
         if ('Notification' in window && Notification.permission === 'granted') {
