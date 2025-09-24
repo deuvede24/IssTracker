@@ -26,6 +26,7 @@
 // ===== PWA OPTIMIZATIONS =====
 @media (display-mode: standalone) {
   .app-container {
-    padding-top: max(env(safe-area-inset-top), 1rem);
+   // padding-top: max(env(safe-area-inset-top), 1rem);
+    padding-top: env(safe-area-inset-top, 0);
   }
 }
