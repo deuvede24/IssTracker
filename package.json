@@ -1,6 +1,7 @@
 {
   "name": "iss-tracker",
   "version": "0.0.0",
+   "author": "Daniela Villarreal <cdaniela.vd@gmail.com>",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
