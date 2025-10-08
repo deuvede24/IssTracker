@@ -39,26 +39,27 @@ Real-time ISS tracking with clean, intuitive UX. See where the Station is now, w
 
 ## 🧰 Tech Stack
 
-| Category      | Tools / Libraries                              |
-|---------------|-------------------------------------------------|
-| Frontend      | **Angular 19**, Bootstrap 5                     |
-| Mapping       | **Mapbox GL JS**, `satellite.js`                |
-| Data source   | **Open Notify API** (fallback for ISS position) |
-| PWA           | Angular Service Worker, Web App Manifest        |
-| Hosting       | Vercel (CI/CD)                                  |
+| Category    | Tools / Libraries                                                        |
+|-------------|--------------------------------------------------------------------------|
+| Frontend    | **Angular 19**, Bootstrap 5                                              |
+| Mapping     | **Mapbox GL JS**, `satellite.js`                                         |
+| Data source | **WhereTheISS.at** (primary) · **Open Notify API** (fallback via Vercel) |
+| PWA         | Angular Service Worker, Web App Manifest                                 |
+| Hosting     | Vercel (CI/CD)                                                           |
+
 
 > This is a **100% frontend project** — no backend required.  
 > Pass calculations run locally with `satellite.js`; the ISS tab uses the same data flow. Mapbox token is URL-restricted (Vercel + localhost).
 
 ---
 
-## Architecture & Roadmap (frontend-first)
+## 🧭 Architecture & Roadmap (frontend-first)
 
 **Today — 100% frontend (Angular PWA):**  
 - Pass calculations run locally using `satellite.js`  
 - Map rendering via Mapbox (token URL-restricted)  
 - Desktop alerts with Service Worker + Notifications API  
-- **Open Notify** used as a **secondary/backup** source for ISS position (ensures robustness)
+- **ISS position:** **WhereTheISS.at** (primary) · **Open Notify** (fallback via Vercel proxy)
 
 **Next — extend frontend superpowers:**  
 - **.ICS calendar export** generated client-side  
@@ -68,7 +69,7 @@ Real-time ISS tracking with clean, intuitive UX. See where the Station is now, w
 
 ---
 
-## Version
+## 🛠️ Version
 
 **v1.1 — Stable & improving**  
 - Pass calculations and desktop alerts are fully functional  
@@ -76,7 +77,7 @@ Real-time ISS tracking with clean, intuitive UX. See where the Station is now, w
 
 ---
 
-## Try it
+## ▶️ Try it
 
 👉 [iss-tracker-woad.vercel.app/home](https://iss-tracker-woad.vercel.app/home)  
 On mobile, tap **Install** to get the full PWA experience 🚀
